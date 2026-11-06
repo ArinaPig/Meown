@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://bytf76qb4070u"]
+
+[ext_resource type="Script" uid="uid://dki2esvam5bp7" path="res://scenes/minigames/catio/Food.gd" id="1_nnd35"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_r0adu"]
+radius = 8.0
+
+[node name="Food" type="Area2D" unique_id=846374973]
+script = ExtResource("1_nnd35")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1882511064]
+shape = SubResource("CircleShape2D_r0adu")

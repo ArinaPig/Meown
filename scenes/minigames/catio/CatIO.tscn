@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://dusbklcg7iigd"]
+
+[ext_resource type="Script" uid="uid://be4wf3dyj4kj4" path="res://scenes/minigames/catio/CatIO.gd" id="1_xag7g"]
+[ext_resource type="PackedScene" uid="uid://fj3d4eb6v7e1" path="res://scenes/minigames/catio/Cat.tscn" id="2_1de8n"]
+[ext_resource type="PackedScene" uid="uid://bytf76qb4070u" path="res://scenes/minigames/catio/Food.tscn" id="2_nsubi"]
+
+[node name="CatIO" type="Node2D" unique_id=798518926]
+script = ExtResource("1_xag7g")
+food_scene = ExtResource("2_nsubi")
+
+[node name="Background" type="Polygon2D" parent="." unique_id=1920880520]
+color = Color(0, 1, 0.6745098, 1)
+polygon = PackedVector2Array(-1000, -1000, 1000, -1000, 1000, 1000, -1000, 1000)
+
+[node name="YSort" type="Node2D" parent="." unique_id=1471300549]
+y_sort_enabled = true
+
+[node name="Camera2D" type="Camera2D" parent="YSort" unique_id=610521039]
+
+[node name="Cat" parent="YSort" unique_id=825145515 instance=ExtResource("2_1de8n")]
+
+[node name="FoodTimer" type="Timer" parent="." unique_id=1379436613]
+wait_time = 0.1
+autostart = true
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=622447109]
+
+[node name="UIRoot" type="Control" parent="UI" unique_id=1321953735]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TimeLabel" type="Label" parent="UI/UIRoot" unique_id=227939251]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 43.0
+
+[node name="MassLabel" type="Label" parent="UI/UIRoot" unique_id=250399427]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -630.0
+offset_top = 20.0
+offset_right = -590.0
+offset_bottom = 43.0
+grow_horizontal = 0

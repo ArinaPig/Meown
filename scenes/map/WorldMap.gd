@@ -1,5 +1,7 @@
 extends Control
 
+const MAP_ASSET_LAYER_SCRIPT := preload("res://scenes/map/MapAssetLayer.gd")
+
 const CAFE_BG := Color("#FAD2B8")
 const CAFE_PANEL := Color("#FFF0D8")
 const CAFE_BROWN := Color("#65372F")
@@ -9,6 +11,7 @@ const CAFE_SAGE := Color("#BDD2AA")
 const CAFE_BLUE := Color("#A9C8E3")
 const CAFE_YELLOW := Color("#F6CF79")
 
+var map_asset_layer: Node
 var status_label: Label
 var shop_button: Button
 var home_button: Button
@@ -16,10 +19,16 @@ var party_button: Button
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	map_asset_layer = MAP_ASSET_LAYER_SCRIPT.new()
+	map_asset_layer.name = "MapAssetLayer"
+	add_child(map_asset_layer)
 	_build_interface()
 	queue_redraw()
 
 func _draw() -> void:
+	if map_asset_layer != null and bool(map_asset_layer.call("is_asset_pack_active")):
+		return
+
 	var size := get_rect().size
 	if size.x <= 0.0:
 		size = Vector2(480.0, 800.0)

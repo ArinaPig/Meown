@@ -20,17 +20,19 @@ const BOT_COLORS := [
 ]
 const BOT_NAMES := ["Пончик", "Луна", "Милки", "Персик", "Плюша", "Кекс"]
 
-var max_food := 150
+var max_food := 65
 var elapsed_time := 0.0
 var leaderboard_label: Label
 var game_over := false
 
 func _ready() -> void:
+	food_timer.wait_time = 0.85
 	food_timer.timeout.connect(_on_food_timer_timeout)
 	if not food_scene:
 		food_scene = load("res://scenes/minigames/catio/Food.tscn")
 	if not cat_scene:
 		cat_scene = load("res://scenes/minigames/catio/Cat.tscn")
+	camera.zoom = Vector2.ONE * 1.3
 	# Keep the camera view inside the pink arena so the outer clear-color area is never exposed.
 	camera.limit_left = -1000
 	camera.limit_top = -1000
@@ -39,7 +41,7 @@ func _ready() -> void:
 	_setup_arena()
 	_setup_hud()
 	_spawn_bots()
-	for i in range(50):
+	for i in range(32):
 		spawn_food()
 
 func _process(delta: float) -> void:
@@ -57,10 +59,10 @@ func _process(delta: float) -> void:
 	elapsed_time += delta
 	if is_instance_valid(camera):
 		camera.global_position = camera.global_position.lerp(player.global_position, min(delta * 7.0, 1.0))
-	# Start closer to the player, then gradually zoom out as its mass increases.
+	# Keep the cat prominent at the start; zoom out noticeably as its mass grows.
 	var player_mass: float = float(player.get("mass"))
-	var target_zoom: float = clampf(1.35 - (player_mass / 1800.0), 0.72, 1.35)
-	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 3.0, 1.0))
+	var target_zoom: float = clampf(1.30 - (player_mass / 1500.0), 0.50, 1.30)
+	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 2.5, 1.0))
 	time_label.text = "ВРЕМЯ  %02d:%02d" % [int(elapsed_time) / 60, int(elapsed_time) % 60]
 	mass_label.text = "МАССА  %d" % int(float(player.get("mass")))
 	_update_leaderboard()

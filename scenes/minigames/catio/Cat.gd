@@ -39,8 +39,8 @@ func _draw() -> void:
 	]
 	for row in range(rows.size()):
 		var y := row * PIXEL + 4
-		var x := rows[row][0]
-		var width := rows[row][1]
+		var x: int = int(rows[row][0])
+		var width: int = int(rows[row][1])
 		draw_rect(Rect2(x, y, width, PIXEL), OUTLINE)
 	# Pixel ears on top of the round body.
 	draw_rect(Rect2(4, 2, 8, 4), OUTLINE)

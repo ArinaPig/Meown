@@ -3,6 +3,8 @@ extends Node
 enum StoryStep { SHOP, GATHER, PARTY, FINISHED }
 
 const SAVE_PATH := "user://meown_save.json"
+# Temporary development switch: lets testers open every minigame from the map.
+const TEST_MODE := true
 const MINIGAMES := {
 	"shop": "res://scenes/minigames/match3/Match3.tscn",
 	"catio": "res://scenes/minigames/catio/CatIO.tscn"
@@ -19,6 +21,8 @@ func _ready() -> void:
 	load_game()
 
 func is_unlocked(game_key: String) -> bool:
+	if TEST_MODE:
+		return true
 	match game_key:
 		"shop":
 			return true

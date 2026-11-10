@@ -57,6 +57,11 @@ func _draw() -> void:
 	_draw_lamp(Vector2(235, 375))
 	_draw_lamp(Vector2(245, 545))
 	_draw_bench(Vector2(315, 655))
+	_draw_resident_cat(Vector2(250, 270), Color("#F2B36F"), Color("#FFF0D8"))
+	_draw_resident_cat(Vector2(405, 535), Color("#A9C8E3"), Color("#FFF0D8"))
+	_draw_resident_cat(Vector2(285, 700), Color("#E58E82"), Color("#FFF0D8"))
+	_draw_pawprints(Vector2(205, 390), 4, Vector2(13, 15))
+	_draw_pawprints(Vector2(260, 505), 3, Vector2(-12, 13))
 
 func _draw_shop(center: Vector2) -> void:
 	# Awning, shop body, door and display window.
@@ -132,6 +137,31 @@ func _draw_bench(center: Vector2) -> void:
 	draw_rect(Rect2(center + Vector2(-22, -15), Vector2(44, 7)), Color("#E7B184"))
 	draw_rect(Rect2(center + Vector2(-17, 2), Vector2(5, 12)), CAFE_BROWN)
 	draw_rect(Rect2(center + Vector2(12, 2), Vector2(5, 12)), CAFE_BROWN)
+
+
+func _draw_resident_cat(center: Vector2, fur: Color, muzzle: Color) -> void:
+	# Tiny neighborhood cats, drawn as crisp pixel sprites.
+	draw_rect(Rect2(center + Vector2(-10, -7), Vector2(20, 17)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(-8, -11), Vector2(16, 17)), fur)
+	draw_rect(Rect2(center + Vector2(-9, -16), Vector2(6, 8)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(3, -16), Vector2(6, 8)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(-7, -13), Vector2(4, 6)), fur)
+	draw_rect(Rect2(center + Vector2(3, -13), Vector2(4, 6)), fur)
+	draw_rect(Rect2(center + Vector2(-5, -6), Vector2(3, 3)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(3, -6), Vector2(3, 3)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(-3, 0), Vector2(6, 4)), muzzle)
+	draw_rect(Rect2(center + Vector2(-2, 1), Vector2(3, 2)), CAFE_PINK)
+	draw_rect(Rect2(center + Vector2(-8, 9), Vector2(5, 4)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(3, 9), Vector2(5, 4)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(8, -2), Vector2(5, 3)), fur)
+
+func _draw_pawprints(start: Vector2, count: int, step: Vector2) -> void:
+	for i in range(count):
+		var p := start + step * float(i)
+		draw_rect(Rect2(p + Vector2(-3, 0), Vector2(6, 5)), Color("#D6A27F"))
+		draw_rect(Rect2(p + Vector2(-5, -4), Vector2(3, 3)), Color("#D6A27F"))
+		draw_rect(Rect2(p + Vector2(-1, -6), Vector2(3, 3)), Color("#D6A27F"))
+		draw_rect(Rect2(p + Vector2(3, -4), Vector2(3, 3)), Color("#D6A27F"))
 
 func _draw_flower(point: Vector2) -> void:
 	draw_rect(Rect2(point + Vector2(-2, -2), Vector2(4, 9)), CAFE_SAGE)

@@ -106,8 +106,8 @@ func _update_leaderboard() -> void:
 	var lines := ["ТОП КОТИКОВ"]
 	for i in range(mini(5, cats.size())):
 		var cat = cats[i]
-		var name := "Ты" if cat == player else cat.bot_name
-		lines.append("%d. %s  %d" % [i + 1, name, int(cat.mass)])
+		var cat_display_name: String = "Ты" if cat == player else str(cat.bot_name)
+		lines.append("%d. %s  %d" % [i + 1, cat_display_name, int(cat.mass)])
 	leaderboard_label.text = "\n".join(lines)
 
 func spawn_food() -> void:

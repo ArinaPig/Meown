@@ -21,6 +21,7 @@ const PIXEL := 2
 func _ready() -> void:
 	add_to_group("cats")
 	area_entered.connect(_on_area_entered)
+	scale = Vector2.ONE * clampf(1.0 + mass / 180.0, 1.0, 3.2)
 	if not is_player:
 		bot_target = global_position + Vector2(randf_range(-400, 400), randf_range(-400, 400))
 	queue_redraw()

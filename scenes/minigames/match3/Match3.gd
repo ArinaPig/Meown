@@ -175,6 +175,8 @@ func _new_game() -> void:
 		safety += 1
 
 	_refresh_board()
+	if not _has_possible_move():
+		_shuffle_board()
 	_update_score()
 	hint_label.text = "Выбери две соседние фишки"
 
@@ -443,7 +445,12 @@ func _refresh_board() -> void:
 			_refresh_tile(Vector2i(x, y))
 
 func _update_score() -> void:
-	score_label.text = "Угощения: %d / %d" % [score, SHOP_GOAL]
+	var best_score: int = int(GameState.high_scores.get("match3", 0))
+	if score > best_score:
+		GameState.high_scores["match3"] = score
+		GameState.save_game()
+		best_score = score
+	score_label.text = "Угощения: %d / %d   Рекорд: %d" % [score, SHOP_GOAL, best_score]
 
 
 func _return_to_map() -> void:

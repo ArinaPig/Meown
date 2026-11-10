@@ -24,6 +24,8 @@ var max_food := 180
 var elapsed_time := 0.0
 var leaderboard_label: Label
 var game_over := false
+var leaderboard_refresh_timer := 0.0
+var game_over_panel: PanelContainer
 
 func _ready() -> void:
 	food_timer.wait_time = 0.30
@@ -53,6 +55,11 @@ func _process(delta: float) -> void:
 			food_timer.stop()
 			time_label.text = "ТЫ ПРОИГРАЛА"
 			mass_label.text = "МАССА  %d" % int(float(player.get("mass")))
+			var final_mass := int(float(player.get("mass")))
+			if final_mass > int(GameState.high_scores.get("catio", 0)):
+				GameState.high_scores["catio"] = final_mass
+				GameState.save_game()
+			_show_game_over(final_mass)
 			return
 	if game_over:
 		return
@@ -65,7 +72,10 @@ func _process(delta: float) -> void:
 	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 2.5, 1.0))
 	time_label.text = "ВРЕМЯ  %02d:%02d" % [int(elapsed_time) / 60, int(elapsed_time) % 60]
 	mass_label.text = "МАССА  %d" % int(float(player.get("mass")))
-	_update_leaderboard()
+	leaderboard_refresh_timer -= delta
+	if leaderboard_refresh_timer <= 0.0:
+		leaderboard_refresh_timer = 0.5
+		_update_leaderboard()
 
 func _setup_arena() -> void:
 	var background := $Background as Polygon2D
@@ -125,6 +135,63 @@ func _setup_hud() -> void:
 	map_button.add_theme_stylebox_override("pressed", map_style)
 	map_button.pressed.connect(_return_to_map)
 	$UI/UIRoot.add_child(map_button)
+
+func _show_game_over(final_mass: int) -> void:
+	if is_instance_valid(game_over_panel):
+		return
+	var overlay := ColorRect.new()
+	overlay.name = "GameOverOverlay"
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.color = Color(0.25, 0.13, 0.12, 0.48)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	$UI/UIRoot.add_child(overlay)
+
+	game_over_panel = PanelContainer.new()
+	game_over_panel.position = Vector2(54, 270)
+	game_over_panel.size = Vector2(372, 250)
+	game_over_panel.custom_minimum_size = Vector2(372, 250)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = CAFE_PANEL
+	panel_style.border_color = CAFE_PINK
+	panel_style.set_border_width_all(4)
+	panel_style.set_corner_radius_all(18)
+	game_over_panel.add_theme_stylebox_override("panel", panel_style)
+	overlay.add_child(game_over_panel)
+
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 14)
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	game_over_panel.add_child(content)
+
+	var title := Label.new()
+	title.text = "Ой! Тебя съели..."
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", CAFE_BROWN)
+	content.add_child(title)
+
+	var result := Label.new()
+	result.text = "Твоя масса: %d\\nРекорд: %d" % [final_mass, int(GameState.high_scores.get("catio", 0))]
+	result.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result.add_theme_font_size_override("font_size", 17)
+	result.add_theme_color_override("font_color", CAFE_MUTED)
+	content.add_child(result)
+
+	var retry := Button.new()
+	retry.text = "ИГРАТЬ ЕЩЁ"
+	retry.custom_minimum_size = Vector2(0, 46)
+	retry.add_theme_font_size_override("font_size", 16)
+	retry.add_theme_color_override("font_color", CAFE_BROWN)
+	retry.pressed.connect(func() -> void: get_tree().reload_current_scene())
+	content.add_child(retry)
+
+	var map := Button.new()
+	map.text = "НА КАРТУ"
+	map.custom_minimum_size = Vector2(0, 42)
+	map.add_theme_font_size_override("font_size", 15)
+	map.add_theme_color_override("font_color", CAFE_BROWN)
+	map.pressed.connect(_return_to_map)
+	content.add_child(map)
 
 func _spawn_bots() -> void:
 	for i in range(BOT_NAMES.size()):

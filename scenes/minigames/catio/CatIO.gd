@@ -57,9 +57,10 @@ func _process(delta: float) -> void:
 	elapsed_time += delta
 	if is_instance_valid(camera):
 		camera.global_position = camera.global_position.lerp(player.global_position, min(delta * 7.0, 1.0))
-	# As the cat grows, zoom out to keep more of the arena visible.
-	var target_zoom: float = clampf(0.82 - (float(player.get("mass")) / 900.0), 0.42, 0.82)
-	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 2.0, 1.0))
+	# Start closer to the player, then gradually zoom out as its mass increases.
+	var player_mass: float = float(player.get("mass"))
+	var target_zoom: float = clampf(1.35 - (player_mass / 1800.0), 0.72, 1.35)
+	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 3.0, 1.0))
 	time_label.text = "ВРЕМЯ  %02d:%02d" % [int(elapsed_time) / 60, int(elapsed_time) % 60]
 	mass_label.text = "МАССА  %d" % int(float(player.get("mass")))
 	_update_leaderboard()

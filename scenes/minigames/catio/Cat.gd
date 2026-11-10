@@ -153,15 +153,15 @@ func _on_area_entered(area: Area2D) -> void:
 	if is_eaten:
 		return
 	if area.is_in_group("food"):
-		var value: float = area.food_value
+		var value: float = float(area.get("food_value"))
 		if area.has_method("consume"):
-			if not area.consume():
+			if not bool(area.call("consume")):
 				return
 		else:
 			area.queue_free()
 		grow(value)
 	elif area.is_in_group("cats") and area != self:
 		if mass >= float(area.get("mass")) * 1.2 and not bool(area.get("is_eaten")):
-			bool(area.get("is_eaten")) = true
+			area.set("is_eaten", true)
 			grow(float(area.get("mass")) * 0.75)
 			area.queue_free()

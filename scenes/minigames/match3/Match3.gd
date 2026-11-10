@@ -353,6 +353,8 @@ func _resolve_board() -> void:
 		await appear_tween.finished
 		matches = _find_matches()
 
+	if not _has_possible_move():
+		_shuffle_board()
 	_update_score()
 	if score >= SHOP_GOAL and GameState.story_step == GameState.StoryStep.SHOP:
 		GameState.complete_shop()
@@ -381,6 +383,41 @@ func _refill_board() -> void:
 		for x in range(BOARD_SIZE):
 			if board[y][x] == -1:
 				board[y][x] = randi() % TILE_TEXTURES.size()
+
+func _has_possible_move() -> bool:
+	for y in range(BOARD_SIZE):
+		for x in range(BOARD_SIZE):
+			var origin := Vector2i(x, y)
+			for direction in [Vector2i.RIGHT, Vector2i.DOWN]:
+				var neighbor: Vector2i = origin + direction
+				if neighbor.x >= BOARD_SIZE or neighbor.y >= BOARD_SIZE:
+					continue
+				_swap_cells(origin, neighbor)
+				var creates_match := not _find_matches().is_empty()
+				_swap_cells(origin, neighbor)
+				if creates_match:
+					return true
+	return false
+
+func _shuffle_board() -> void:
+	var values: Array[int] = []
+	for y in range(BOARD_SIZE):
+		for x in range(BOARD_SIZE):
+			values.append(int(board[y][x]))
+	values.shuffle()
+	var safety := 0
+	while safety < 100:
+		var index := 0
+		for y in range(BOARD_SIZE):
+			for x in range(BOARD_SIZE):
+				board[y][x] = values[index]
+				index += 1
+		if _find_matches().is_empty() and _has_possible_move():
+			break
+		values.shuffle()
+		safety += 1
+	_refresh_board()
+	hint_label.text = "Фишки перемешаны — появились новые ходы!"
 
 func _refresh_tile(cell: Vector2i) -> void:
 	var kind: int = board[cell.y][cell.x]

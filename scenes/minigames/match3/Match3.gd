@@ -528,7 +528,7 @@ func _update_score() -> void:
 		GameState.high_scores["match3"] = score
 		GameState.save_game()
 		best_score = score
-	score_label.text = "Угощения: %d / %d   Рекорд: %d" % [score, SHOP_GOAL, best_score]
+	score_label.text = "Очки: %d   Рекорд: %d" % [score, best_score]
 
 
 func _update_task_display() -> void:

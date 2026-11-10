@@ -1,6 +1,7 @@
 extends Node2D
 
 @export var food_scene: PackedScene
+@export var cat_scene: PackedScene
 @onready var ysort: Node2D = $YSort
 @onready var player: Area2D = $YSort/Cat
 @onready var camera: Camera2D = $YSort/Camera2D
@@ -13,31 +14,41 @@ const CAFE_PANEL := Color("#FFF0D8")
 const CAFE_BROWN := Color("#65372F")
 const CAFE_PINK := Color("#F2A5B5")
 const CAFE_MUTED := Color("#A7654F")
+const BOT_COLORS := [
+	Color("#F2A5B5"), Color("#A9C8E3"), Color("#B8C98A"),
+	Color("#C4A4D8"), Color("#FFD6A8"), Color("#E58E82")
+]
+const BOT_NAMES := ["Пончик", "Луна", "Милки", "Персик", "Плюша", "Кекс"]
 
 var max_food := 150
 var elapsed_time := 0.0
+var leaderboard_label: Label
 
 func _ready() -> void:
 	food_timer.timeout.connect(_on_food_timer_timeout)
 	if not food_scene:
 		food_scene = load("res://scenes/minigames/catio/Food.tscn")
+	if not cat_scene:
+		cat_scene = load("res://scenes/minigames/catio/Cat.tscn")
 	_setup_arena()
 	_setup_hud()
+	_spawn_bots()
 	for i in range(50):
 		spawn_food()
 
 func _process(delta: float) -> void:
 	elapsed_time += delta
 	camera.global_position = camera.global_position.lerp(player.global_position, min(delta * 7.0, 1.0))
-	var target_zoom := 0.6 + (player.mass / 400.0)
-	camera.zoom = camera.zoom.lerp(Vector2(target_zoom, target_zoom), min(delta * 2.0, 1.0))
+	# As the cat grows, zoom out to keep more of the arena visible.
+	var target_zoom := clampf(0.82 - (player.mass / 900.0), 0.42, 0.82)
+	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 2.0, 1.0))
 	time_label.text = "ВРЕМЯ  %02d:%02d" % [int(elapsed_time) / 60, int(elapsed_time) % 60]
 	mass_label.text = "МАССА  %d" % int(player.mass)
+	_update_leaderboard()
 
 func _setup_arena() -> void:
 	var background := $Background as Polygon2D
 	background.color = CAFE_BG
-	# Ненавязчивый пиксельный узор на большой игровой площадке.
 	var pattern := Node2D.new()
 	pattern.name = "CafePattern"
 	pattern.z_index = -1
@@ -59,9 +70,48 @@ func _setup_hud() -> void:
 		label.add_theme_constant_override("shadow_offset_y", 2)
 	time_label.text = "ВРЕМЯ  00:00"
 	mass_label.text = "МАССА  20"
+	var panel := PanelContainer.new()
+	panel.name = "Leaderboard"
+	panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	panel.position = Vector2(-166, 58)
+	panel.custom_minimum_size = Vector2(150, 0)
+	var style := StyleBoxFlat.new()
+	style.bg_color = CAFE_PANEL
+	style.border_color = CAFE_PINK
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	panel.add_theme_stylebox_override("panel", style)
+	$UI/UIRoot.add_child(panel)
+	leaderboard_label = Label.new()
+	leaderboard_label.add_theme_color_override("font_color", CAFE_BROWN)
+	leaderboard_label.add_theme_font_size_override("font_size", 11)
+	leaderboard_label.text = "ТОП КОТИКОВ"
+	panel.add_child(leaderboard_label)
+
+func _spawn_bots() -> void:
+	for i in range(BOT_NAMES.size()):
+		var bot = cat_scene.instantiate()
+		bot.is_player = false
+		bot.bot_name = BOT_NAMES[i]
+		bot.body_color = BOT_COLORS[i]
+		bot.mass = randf_range(18.0, 55.0)
+		bot.position = Vector2(randf_range(-780, 780), randf_range(-780, 780))
+		ysort.add_child(bot)
+
+func _update_leaderboard() -> void:
+	if not is_instance_valid(leaderboard_label):
+		return
+	var cats := get_tree().get_nodes_in_group("cats")
+	cats.sort_custom(func(a, b): return a.mass > b.mass)
+	var lines := ["ТОП КОТИКОВ"]
+	for i in range(mini(5, cats.size())):
+		var cat = cats[i]
+		var name := "Ты" if cat == player else cat.bot_name
+		lines.append("%d. %s  %d" % [i + 1, name, int(cat.mass)])
+	leaderboard_label.text = "\n".join(lines)
 
 func spawn_food() -> void:
-	if ysort.get_child_count() >= max_food:
+	if get_tree().get_nodes_in_group("food").size() >= max_food:
 		return
 	var food = food_scene.instantiate()
 	food.add_to_group("food")

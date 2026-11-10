@@ -20,13 +20,13 @@ const BOT_COLORS := [
 ]
 const BOT_NAMES := ["Пончик", "Луна", "Милки", "Персик", "Плюша", "Кекс"]
 
-var max_food := 65
+var max_food := 180
 var elapsed_time := 0.0
 var leaderboard_label: Label
 var game_over := false
 
 func _ready() -> void:
-	food_timer.wait_time = 0.85
+	food_timer.wait_time = 0.30
 	food_timer.timeout.connect(_on_food_timer_timeout)
 	if not food_scene:
 		food_scene = load("res://scenes/minigames/catio/Food.tscn")
@@ -41,7 +41,7 @@ func _ready() -> void:
 	_setup_arena()
 	_setup_hud()
 	_spawn_bots()
-	for i in range(32):
+	for i in range(90):
 		spawn_food()
 
 func _process(delta: float) -> void:

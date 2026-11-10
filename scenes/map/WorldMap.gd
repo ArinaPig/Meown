@@ -16,6 +16,9 @@ var status_label: Label
 var shop_button: Button
 var home_button: Button
 var party_button: Button
+var transition_overlay: ColorRect
+var _transitioning: bool = false
+var _button_tweens: Dictionary = {}
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -23,6 +26,7 @@ func _ready() -> void:
 	map_asset_layer.name = "MapAssetLayer"
 	add_child(map_asset_layer)
 	_build_interface()
+	_create_transition_overlay()
 	queue_redraw()
 
 func _draw() -> void:
@@ -197,14 +201,20 @@ func _build_interface() -> void:
 	add_child(subtitle)
 
 	shop_button = _make_location_button("МАГАЗИН\nТри в ряд", Rect2(48, 350, 154, 62))
+	shop_button.tooltip_text = "Магазин: собирай вкусности в игре «Три в ряд»."
+	_setup_location_button(shop_button)
 	shop_button.pressed.connect(_open_shop)
 	add_child(shop_button)
 
 	home_button = _make_location_button("ДОМИК\nПоиск предметов", Rect2(263, 485, 174, 62))
+	home_button.tooltip_text = "Домик: помоги котику найти предметы для праздника."
+	_setup_location_button(home_button)
 	home_button.pressed.connect(_open_search)
 	add_child(home_button)
 
 	party_button = _make_location_button("ВЕЧЕРИНКА\nCat.io", Rect2(66, 680, 178, 58))
+	party_button.tooltip_text = "Вечеринка: присоединяйся к котикам в Cat.io."
+	_setup_location_button(party_button)
 	party_button.pressed.connect(_open_party)
 	add_child(party_button)
 
@@ -234,6 +244,80 @@ func _make_location_button(caption: String, rect: Rect2) -> Button:
 	button.focus_mode = Control.FOCUS_NONE
 	return button
 
+func _setup_location_button(button: Button) -> void:
+	button.pivot_offset = button.size * 0.5
+	button.mouse_entered.connect(_animate_button.bind(button, Vector2(1.035, 1.035), 0.12))
+	button.mouse_exited.connect(_animate_button.bind(button, Vector2.ONE, 0.12))
+	button.button_down.connect(_animate_button.bind(button, Vector2(0.96, 0.96), 0.07))
+	button.button_up.connect(_on_location_button_released.bind(button))
+
+func _on_location_button_released(button: Button) -> void:
+	var target := Vector2(1.035, 1.035) if button.is_hovered() else Vector2.ONE
+	_animate_button(button, target, 0.10)
+
+func _animate_button(button: Button, target_scale: Vector2, duration: float) -> void:
+	if not is_instance_valid(button):
+		return
+
+	var button_id := button.get_instance_id()
+	if _button_tweens.has(button_id):
+		var previous_tween: Variant = _button_tweens[button_id]
+		if is_instance_valid(previous_tween):
+			previous_tween.kill()
+
+	var tween := create_tween()
+	_button_tweens[button_id] = tween
+	tween.set_trans(Tween.TRANS_BACK)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.tween_property(button, "scale", target_scale, duration)
+
+func _create_transition_overlay() -> void:
+	transition_overlay = ColorRect.new()
+	transition_overlay.name = "TransitionOverlay"
+	transition_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	transition_overlay.color = CAFE_BROWN
+	transition_overlay.modulate.a = 0.0
+	transition_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	transition_overlay.z_index = 100
+	add_child(transition_overlay)
+
+func _set_location_buttons_disabled(disabled: bool) -> void:
+	shop_button.disabled = disabled
+	home_button.disabled = disabled
+	party_button.disabled = disabled
+
+func _play_location_transition(game_key: String) -> void:
+	if _transitioning:
+		return
+
+	_transitioning = true
+	_set_location_buttons_disabled(true)
+
+	var fade_out := create_tween()
+	fade_out.set_trans(Tween.TRANS_SINE)
+	fade_out.set_ease(Tween.EASE_IN)
+	fade_out.tween_property(transition_overlay, "modulate:a", 1.0, 0.18)
+	await fade_out.finished
+
+	if GameState.start_minigame(game_key):
+		return
+
+	if game_key == "search":
+		status_label.text = "Сцена поиска пока не подключена. Добавим её, когда Алиса будет готова."
+	elif game_key == "catio":
+		status_label.text = "Не удалось открыть Cat.io."
+	else:
+		status_label.text = "Не удалось открыть мини-игру."
+
+	var fade_in := create_tween()
+	fade_in.set_trans(Tween.TRANS_SINE)
+	fade_in.set_ease(Tween.EASE_OUT)
+	fade_in.tween_property(transition_overlay, "modulate:a", 0.0, 0.18)
+	await fade_in.finished
+
+	_transitioning = false
+	_set_location_buttons_disabled(false)
+
 func _button_style(fill: Color, outline: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
@@ -258,12 +342,10 @@ func _refresh_locations() -> void:
 		status_label.text = "Начни с магазина и собери угощения для праздника."
 
 func _open_shop() -> void:
-	GameState.start_minigame("shop")
+	_play_location_transition("shop")
 
 func _open_search() -> void:
-	if not GameState.start_minigame("search"):
-		status_label.text = "Сцена поиска пока не подключена. Добавим её, когда Алиса будет готова."
+	_play_location_transition("search")
 
 func _open_party() -> void:
-	if not GameState.start_minigame("catio"):
-		status_label.text = "Не удалось открыть Cat.io."
+	_play_location_transition("catio")

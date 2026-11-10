@@ -182,8 +182,8 @@ func _button_style(fill: Color, outline: Color) -> StyleBoxFlat:
 
 func _refresh_locations() -> void:
 	shop_button.disabled = false
-	home_button.disabled = GameState.story_step < GameState.StoryStep.GATHER
-	party_button.disabled = GameState.story_step < GameState.StoryStep.PARTY
+	home_button.disabled = false
+	party_button.disabled = false
 	if GameState.story_step >= GameState.StoryStep.PARTY:
 		status_label.text = "Всё готово! Время веселиться!"
 	elif GameState.story_step >= GameState.StoryStep.GATHER:
@@ -195,14 +195,9 @@ func _open_shop() -> void:
 	GameState.start_minigame("shop")
 
 func _open_search() -> void:
-	if GameState.story_step < GameState.StoryStep.GATHER:
-		status_label.text = "Сначала нужно подготовить угощения в магазине."
-		return
 	if not GameState.start_minigame("search"):
-		status_label.text = "Дом открыт! Мини-игра поиска скоро появится здесь."
+		status_label.text = "Сцена поиска пока не подключена. Добавим её, когда Алиса будет готова."
 
 func _open_party() -> void:
-	if GameState.story_step < GameState.StoryStep.PARTY:
-		status_label.text = "Сначала найди всё необходимое дома."
-		return
-	GameState.start_minigame("catio")
+	if not GameState.start_minigame("catio"):
+		status_label.text = "Не удалось открыть Cat.io."

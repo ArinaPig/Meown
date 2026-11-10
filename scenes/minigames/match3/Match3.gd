@@ -5,6 +5,7 @@ extends Control
 # Управление: выберите две соседние фишки.
 
 const BOARD_SIZE := 7
+const SHOP_GOAL := 500
 const TILE_TEXTURES: Array[Texture2D] = [
 	preload("res://assets/minigames/match3/fish.png"),
 	preload("res://assets/minigames/match3/milk.png"),
@@ -146,6 +147,14 @@ func _build_interface() -> void:
 	restart.add_theme_stylebox_override("pressed", restart_style)
 	restart.pressed.connect(_new_game)
 	layout.add_child(restart)
+
+	var map_button := Button.new()
+	map_button.text = "На карту"
+	map_button.custom_minimum_size = Vector2(0, 42)
+	map_button.add_theme_font_size_override("font_size", 16)
+	map_button.add_theme_color_override("font_color", CAFE_BROWN)
+	map_button.pressed.connect(_return_to_map)
+	layout.add_child(map_button)
 
 func _new_game() -> void:
 	score = 0
@@ -345,6 +354,14 @@ func _resolve_board() -> void:
 		matches = _find_matches()
 
 	_update_score()
+	if score >= SHOP_GOAL and GameState.story_step == GameState.StoryStep.SHOP:
+		GameState.complete_shop()
+		hint_label.text = "Ура! Угощения собраны!"
+		busy = true
+		await get_tree().create_timer(1.0).timeout
+		GameState.return_to_map()
+		return
+
 	hint_label.text = "Отлично! Собирай продукты дальше"
 	busy = false
 
@@ -389,4 +406,8 @@ func _refresh_board() -> void:
 			_refresh_tile(Vector2i(x, y))
 
 func _update_score() -> void:
-	score_label.text = "Собрано вкусностей: %d" % score
+	score_label.text = "Угощения: %d / %d" % [score, SHOP_GOAL]
+
+
+func _return_to_map() -> void:
+	GameState.return_to_map()

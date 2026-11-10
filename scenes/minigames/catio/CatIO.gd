@@ -106,14 +106,14 @@ func _update_leaderboard() -> void:
 	var lines: PackedStringArray = ["ТОП КОТИКОВ"]
 	for i in range(mini(5, cats.size())):
 		var cat: Area2D = cats[i] as Area2D
-		var cat_display_name: String = "Ты" if cat == player else str(str(cat.get("bot_name")))
+		var cat_display_name: String = "Ты" if cat == player else str(cat.get("bot_name"))
 		lines.append("%d. %s  %d" % [i + 1, cat_display_name, int(cat.get("mass"))])
 	leaderboard_label.text = "\n".join(lines)
 
 func spawn_food() -> void:
 	if get_tree().get_nodes_in_group("food").size() >= max_food:
 		return
-	var food = food_scene.instantiate()
+	var food: Area2D = food_scene.instantiate() as Area2D
 	food.add_to_group("food")
 	food.position = Vector2(randf_range(-900, 900), randf_range(-900, 900))
 	ysort.add_child(food)

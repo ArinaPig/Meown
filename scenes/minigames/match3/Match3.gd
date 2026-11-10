@@ -251,7 +251,8 @@ func _try_swap(first: Vector2i, second: Vector2i) -> void:
 	await swap_out.finished
 
 	_swap_cells(first, second)
-	_refresh_board()
+	_refresh_tile(first)
+	_refresh_tile(second)
 	var swap_in := create_tween().set_parallel(true)
 	swap_in.tween_property(first_tile, "scale", Vector2.ONE, 0.12)
 	swap_in.tween_property(second_tile, "scale", Vector2.ONE, 0.12)
@@ -259,7 +260,8 @@ func _try_swap(first: Vector2i, second: Vector2i) -> void:
 
 	if _find_matches().is_empty():
 		_swap_cells(first, second)
-		_refresh_board()
+		_refresh_tile(first)
+		_refresh_tile(second)
 		var return_tween := create_tween().set_parallel(true)
 		return_tween.tween_property(first_tile, "scale", Vector2(0.82, 0.82), 0.07)
 		return_tween.tween_property(second_tile, "scale", Vector2(0.82, 0.82), 0.07)
@@ -355,25 +357,28 @@ func _refill_board() -> void:
 			if board[y][x] == -1:
 				board[y][x] = randi() % TILE_TEXTURES.size()
 
+func _refresh_tile(cell: Vector2i) -> void:
+	var kind: int = board[cell.y][cell.x]
+	var tile: Button = tile_buttons[cell.y][cell.x]
+	tile.text = ""
+	tile.icon = TILE_TEXTURES[kind]
+	var style := StyleBoxFlat.new()
+	style.bg_color = TILE_COLORS[kind]
+	style.set_corner_radius_all(9)
+	style.set_border_width_all(1)
+	style.border_color = CAFE_BROWN
+	if selected_cell == cell:
+		style.set_border_width_all(4)
+		style.border_color = Color("#F29A62")
+	tile.add_theme_stylebox_override("normal", style)
+	tile.add_theme_stylebox_override("hover", style)
+	tile.add_theme_stylebox_override("pressed", style)
+	tile.add_theme_stylebox_override("focus", style)
+
 func _refresh_board() -> void:
 	for y in range(BOARD_SIZE):
 		for x in range(BOARD_SIZE):
-			var kind: int = board[y][x]
-			var tile: Button = tile_buttons[y][x]
-			tile.text = ""
-			tile.icon = TILE_TEXTURES[kind]
-			var style := StyleBoxFlat.new()
-			style.bg_color = TILE_COLORS[kind]
-			style.set_corner_radius_all(9)
-			style.set_border_width_all(1)
-			style.border_color = CAFE_BROWN
-			if selected_cell == Vector2i(x, y):
-				style.set_border_width_all(4)
-				style.border_color = Color("#F29A62")
-			tile.add_theme_stylebox_override("normal", style)
-			tile.add_theme_stylebox_override("hover", style)
-			tile.add_theme_stylebox_override("pressed", style)
-			tile.add_theme_stylebox_override("focus", style)
+			_refresh_tile(Vector2i(x, y))
 
 func _update_score() -> void:
 	score_label.text = "Собрано вкусностей: %d" % score

@@ -313,15 +313,13 @@ func _resolve_board() -> void:
 	while not matches.is_empty():
 		score += matches.size() * 10
 		var changed_cells := {}
+		var vanish_tween := create_tween().set_parallel(true)
 		for cell in matches:
 			changed_cells[cell] = true
 			var tile: Button = tile_buttons[cell.y][cell.x]
-			var vanish_tween := create_tween().set_parallel(true)
 			vanish_tween.tween_property(tile, "scale", Vector2(0.15, 0.15), 0.16)
 			vanish_tween.tween_property(tile, "modulate:a", 0.0, 0.16)
-			# Анимации исчезновения запускаются ниже одновременно для всех совпавших клеток.
-		# Tween хранится отдельно, чтобы дождаться завершения общей группы.
-		await get_tree().create_timer(0.16).timeout
+		await vanish_tween.finished
 
 		var previous_board: Array = board.duplicate(true)
 		for cell in matches:
@@ -329,7 +327,7 @@ func _resolve_board() -> void:
 		_apply_gravity()
 		_refill_board()
 
-		# Отмечаем только клетки, содержимое которых действительно изменилось.
+		# Меняем оформление только там, где содержимое клетки изменилось.
 		for y in range(BOARD_SIZE):
 			for x in range(BOARD_SIZE):
 				if previous_board[y][x] != board[y][x]:

@@ -402,24 +402,57 @@ func _has_possible_move() -> bool:
 	return false
 
 func _shuffle_board() -> void:
+	# Сначала пробуем сохранить набор фишек, меняя только их расположение.
 	var values: Array[int] = []
 	for y in range(BOARD_SIZE):
 		for x in range(BOARD_SIZE):
 			values.append(int(board[y][x]))
 	values.shuffle()
-	var safety := 0
-	while safety < 100:
+
+	var found_playable_layout := false
+	for attempt in range(100):
 		var index := 0
 		for y in range(BOARD_SIZE):
 			for x in range(BOARD_SIZE):
 				board[y][x] = values[index]
 				index += 1
 		if _find_matches().is_empty() and _has_possible_move():
+			found_playable_layout = true
 			break
 		values.shuffle()
-		safety += 1
+
+	# Крайний случай: создаём проверенную раскладку, в которой точно есть ход.
+	if not found_playable_layout:
+		_create_guaranteed_playable_board()
+
 	_refresh_board()
 	hint_label.text = "Фишки перемешаны — появились новые ходы!"
+
+func _create_guaranteed_playable_board() -> void:
+	# Базовый узор не содержит готовых троек по горизонтали и вертикали.
+	for y in range(BOARD_SIZE):
+		for x in range(BOARD_SIZE):
+			board[y][x] = (x + y * 2) % TILE_TEXTURES.size()
+
+	# Подготавливаем ход: обмен (0, 1) с (1, 1) соберёт три фишки типа 0.
+	board[0][0] = 0
+	board[0][1] = 1
+	board[0][2] = 0
+	board[1][1] = 0
+	board[2][1] = 0
+	board[3][1] = 5
+
+	# Защита от будущих изменений размера поля или палитры.
+	if not _find_matches().is_empty() or not _has_possible_move():
+		for y in range(BOARD_SIZE):
+			for x in range(BOARD_SIZE):
+				board[y][x] = (x + y) % TILE_TEXTURES.size()
+		board[0][0] = 0
+		board[0][1] = 1
+		board[0][2] = 0
+		board[1][1] = 0
+		board[2][1] = 0
+		board[3][1] = 4
 
 func _refresh_tile(cell: Vector2i) -> void:
 	var kind: int = board[cell.y][cell.x]

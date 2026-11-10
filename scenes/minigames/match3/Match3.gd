@@ -190,8 +190,6 @@ func _input(event: InputEvent) -> void:
 		if cell.x >= 0 and not busy:
 			pointer_start_cell = cell
 			pointer_active = true
-			selected_cell = cell
-			_refresh_board()
 			get_viewport().set_input_as_handled()
 	elif released and pointer_active:
 		var start_cell := pointer_start_cell

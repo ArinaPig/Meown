@@ -18,7 +18,7 @@ const CREAM := Color("#FFF0D8")
 const PINK := Color("#F2A5B5")
 const PIXEL := 2
 const START_MASS := 20.0
-const MAX_CAT_SCALE := 3.2
+const MAX_CAT_SCALE := 6.0
 
 func _ready() -> void:
 	add_to_group("cats")
@@ -98,7 +98,7 @@ func _physics_process(delta: float) -> void:
 		_bot_think(delta)
 	var current_speed: float = maxf(85.0, base_speed / (1.0 + sqrt(mass / 100.0)))
 	global_position += move_direction * current_speed * delta
-	var radius: float = 18.0 * scale.x
+	var radius: float = 20.0 * scale.x
 	global_position.x = clampf(global_position.x, -ARENA_LIMIT + radius, ARENA_LIMIT - radius)
 	global_position.y = clampf(global_position.y, -ARENA_LIMIT + radius, ARENA_LIMIT - radius)
 

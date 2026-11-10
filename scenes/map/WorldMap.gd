@@ -28,7 +28,7 @@ func _draw() -> void:
 	# Soft grass patches and tiny pixel flowers.
 	for patch in [Rect2(12, 155, 105, 82), Rect2(330, 180, 130, 88), Rect2(18, 430, 92, 95), Rect2(350, 535, 112, 110)]:
 		draw_rect(patch, Color("#F3C4A9"))
-	for point in [Vector2(35, 180), Vector2(430, 210), Vector2(42, 490), Vector2(420, 610), Vector2(245, 720)]:
+	for point in [Vector2(35, 180), Vector2(430, 210), Vector2(42, 490), Vector2(420, 610), Vector2(245, 720), Vector2(285, 250), Vector2(300, 565), Vector2(90, 590), Vector2(355, 720)]:
 		_draw_flower(point)
 
 	# A winding path connects the three places.
@@ -51,6 +51,12 @@ func _draw() -> void:
 	_draw_tree(Vector2(430, 330))
 	_draw_tree(Vector2(385, 690))
 	_draw_tree(Vector2(40, 690))
+	_draw_bush(Vector2(275, 245))
+	_draw_bush(Vector2(300, 575))
+	_draw_bush(Vector2(75, 555))
+	_draw_lamp(Vector2(235, 375))
+	_draw_lamp(Vector2(245, 545))
+	_draw_bench(Vector2(315, 655))
 
 func _draw_shop(center: Vector2) -> void:
 	# Awning, shop body, door and display window.
@@ -105,6 +111,27 @@ func _draw_tree(center: Vector2) -> void:
 	draw_rect(Rect2(center + Vector2(-17, -7), Vector2(34, 24)), CAFE_SAGE)
 	draw_rect(Rect2(center + Vector2(-11, -17), Vector2(22, 14)), Color("#AFC58F"))
 	draw_rect(Rect2(center + Vector2(-4, -4), Vector2(5, 5)), Color("#F6E4B9"))
+
+
+func _draw_bush(center: Vector2) -> void:
+	# Small layered shrubs in the same chunky pixel style.
+	draw_rect(Rect2(center + Vector2(-19, -2), Vector2(38, 15)), Color("#8FAE7E"))
+	draw_rect(Rect2(center + Vector2(-13, -9), Vector2(26, 12)), CAFE_SAGE)
+	draw_rect(Rect2(center + Vector2(-4, -13), Vector2(8, 7)), Color("#D7DDAA"))
+	draw_rect(Rect2(center + Vector2(8, -4), Vector2(5, 5)), CAFE_PINK)
+
+func _draw_lamp(center: Vector2) -> void:
+	# Warm little street lamps beside the winding path.
+	draw_rect(Rect2(center + Vector2(-2, -2), Vector2(5, 30)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(-8, -11), Vector2(17, 12)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(-5, -8), Vector2(11, 7)), CAFE_YELLOW)
+	draw_rect(Rect2(center + Vector2(-10, 27), Vector2(21, 4)), CAFE_BROWN)
+
+func _draw_bench(center: Vector2) -> void:
+	draw_rect(Rect2(center + Vector2(-22, -5), Vector2(44, 7)), Color("#D99A72"))
+	draw_rect(Rect2(center + Vector2(-22, -15), Vector2(44, 7)), Color("#E7B184"))
+	draw_rect(Rect2(center + Vector2(-17, 2), Vector2(5, 12)), CAFE_BROWN)
+	draw_rect(Rect2(center + Vector2(12, 2), Vector2(5, 12)), CAFE_BROWN)
 
 func _draw_flower(point: Vector2) -> void:
 	draw_rect(Rect2(point + Vector2(-2, -2), Vector2(4, 9)), CAFE_SAGE)

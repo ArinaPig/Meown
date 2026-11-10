@@ -69,7 +69,7 @@ func _load_asset_pack() -> void:
 	if not manifest_complete or not missing_required.is_empty() or pending_layers.is_empty():
 		_loaded_layers = 0
 		if not missing_required.is_empty():
-			push_warning("Map assets are incomplete. Keeping the built-in map. Missing: " + ", ".join(missing_required))
+			push_warning("Map assets are incomplete. Keeping the built-in map. Missing: " + str(missing_required))
 		return
 
 	for layer in pending_layers:
@@ -94,8 +94,6 @@ func _add_texture_layer(layer: Dictionary) -> void:
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	sprite.z_index = int(layer.get("z_index", 0))
-	sprite.flip_h = bool(layer.get("flip_h", false))
-	sprite.flip_v = bool(layer.get("flip_v", false))
 	add_child(sprite)
 
 func _read_vector(value: Variant, fallback: Vector2) -> Vector2:

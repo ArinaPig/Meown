@@ -1,6 +1,14 @@
 extends Area2D
 
 var food_value := 5.0
+var consumed := false
+
+func consume() -> bool:
+	if consumed:
+		return false
+	consumed = true
+	queue_free()
+	return true
 
 const OUTLINE := Color("#65372F")
 const FOOD_PALETTES := [

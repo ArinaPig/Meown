@@ -312,27 +312,37 @@ func _resolve_board() -> void:
 	var matches := _find_matches()
 	while not matches.is_empty():
 		score += matches.size() * 10
-		var vanish_tween := create_tween().set_parallel(true)
+		var changed_cells := {}
 		for cell in matches:
+			changed_cells[cell] = true
 			var tile: Button = tile_buttons[cell.y][cell.x]
+			var vanish_tween := create_tween().set_parallel(true)
 			vanish_tween.tween_property(tile, "scale", Vector2(0.15, 0.15), 0.16)
 			vanish_tween.tween_property(tile, "modulate:a", 0.0, 0.16)
-		await vanish_tween.finished
+			# Анимации исчезновения запускаются ниже одновременно для всех совпавших клеток.
+		# Tween хранится отдельно, чтобы дождаться завершения общей группы.
+		await get_tree().create_timer(0.16).timeout
 
+		var previous_board: Array = board.duplicate(true)
 		for cell in matches:
 			board[cell.y][cell.x] = -1
 		_apply_gravity()
 		_refill_board()
-		_refresh_board()
 
-		var appear_tween := create_tween().set_parallel(true)
+		# Отмечаем только клетки, содержимое которых действительно изменилось.
 		for y in range(BOARD_SIZE):
 			for x in range(BOARD_SIZE):
-				var tile: Button = tile_buttons[y][x]
-				tile.scale = Vector2(0.72, 0.72)
-				tile.modulate.a = 0.65
-				appear_tween.tween_property(tile, "scale", Vector2.ONE, 0.18)
-				appear_tween.tween_property(tile, "modulate:a", 1.0, 0.18)
+				if previous_board[y][x] != board[y][x]:
+					changed_cells[Vector2i(x, y)] = true
+
+		var appear_tween := create_tween().set_parallel(true)
+		for cell in changed_cells:
+			_refresh_tile(cell)
+			var tile: Button = tile_buttons[cell.y][cell.x]
+			tile.scale = Vector2(0.72, 0.72)
+			tile.modulate.a = 0.0
+			appear_tween.tween_property(tile, "scale", Vector2.ONE, 0.18)
+			appear_tween.tween_property(tile, "modulate:a", 1.0, 0.18)
 		await appear_tween.finished
 		matches = _find_matches()
 

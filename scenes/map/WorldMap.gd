@@ -130,21 +130,21 @@ func _build_interface() -> void:
 	subtitle.add_theme_color_override("font_color", CAFE_MUTED)
 	add_child(subtitle)
 
-	shop_button = _make_location_button("МАГАЗИН\nТри в ряд", Rect2(48, 225, 154, 112))
+	shop_button = _make_location_button("МАГАЗИН\nТри в ряд", Rect2(48, 350, 154, 62))
 	shop_button.pressed.connect(_open_shop)
 	add_child(shop_button)
 
-	home_button = _make_location_button("ДОМИК\nПоиск предметов", Rect2(274, 372, 174, 116))
+	home_button = _make_location_button("ДОМИК\nПоиск предметов", Rect2(263, 485, 174, 62))
 	home_button.pressed.connect(_open_search)
 	add_child(home_button)
 
-	party_button = _make_location_button("ВЕЧЕРИНКА\nCat.io", Rect2(66, 572, 178, 112))
+	party_button = _make_location_button("ВЕЧЕРИНКА\nCat.io", Rect2(66, 680, 178, 58))
 	party_button.pressed.connect(_open_party)
 	add_child(party_button)
 
 	status_label = Label.new()
-	status_label.position = Vector2(20, 738)
-	status_label.size = Vector2(440, 42)
+	status_label.position = Vector2(20, 750)
+	status_label.size = Vector2(440, 34)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -158,7 +158,7 @@ func _make_location_button(caption: String, rect: Rect2) -> Button:
 	button.position = rect.position
 	button.size = rect.size
 	button.text = caption
-	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_font_size_override("font_size", 14)
 	button.add_theme_color_override("font_color", CAFE_BROWN)
 	button.add_theme_color_override("font_disabled_color", Color("#A98B7C"))
 	button.add_theme_stylebox_override("normal", _button_style(CAFE_PANEL, CAFE_BROWN))

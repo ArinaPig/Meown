@@ -16,6 +16,8 @@ polygon = PackedVector2Array(-1000, -1000, 1000, -1000, 1000, 1000, -1000, 1000)
 y_sort_enabled = true
 
 [node name="Camera2D" type="Camera2D" parent="YSort" unique_id=610521039]
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0
 
 [node name="Cat" parent="YSort" unique_id=825145515 instance=ExtResource("2_1de8n")]
 
@@ -35,18 +37,18 @@ grow_vertical = 2
 
 [node name="TimeLabel" type="Label" parent="UI/UIRoot" unique_id=227939251]
 layout_mode = 1
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 60.0
-offset_bottom = 43.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 190.0
+offset_bottom = 48.0
 
 [node name="MassLabel" type="Label" parent="UI/UIRoot" unique_id=250399427]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -630.0
-offset_top = 20.0
-offset_right = -590.0
-offset_bottom = 43.0
+offset_left = -174.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 48.0
 grow_horizontal = 0

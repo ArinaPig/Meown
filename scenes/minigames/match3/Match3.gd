@@ -74,14 +74,14 @@ func _build_interface() -> void:
 	margins.add_child(layout)
 
 	var title := Label.new()
-	title.text = "Kitten Cafe"
+	title.text = "Магазинчик для вечеринки"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 30)
 	title.add_theme_color_override("font_color", CAFE_BROWN)
 	layout.add_child(title)
 
 	var subtitle := Label.new()
-	subtitle.text = "Лавка вкусностей"
+	subtitle.text = "Собираем угощения к празднику"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override("font_size", 18)
 	subtitle.add_theme_color_override("font_color", CAFE_MUTED)
@@ -534,7 +534,7 @@ func _update_score() -> void:
 func _update_task_display() -> void:
 	if task_label == null or moves_label == null:
 		return
-	task_label.text = "Заказ: собери %d %s — %d / %d" % [TASK_AMOUNT, TILE_NAMES[target_kind], target_collected, TASK_AMOUNT]
+	task_label.text = "Для вечеринки: %d %s — %d / %d" % [TASK_AMOUNT, TILE_NAMES[target_kind], target_collected, TASK_AMOUNT]
 	moves_label.text = "Осталось ходов: %d" % moves_left
 
 func _finish_game(won: bool) -> void:
@@ -579,7 +579,7 @@ func _finish_game(won: bool) -> void:
 	panel.add_child(content)
 
 	var result_title := Label.new()
-	result_title.text = "Заказ выполнен!" if won else "Не хватило ходов..."
+	result_title.text = "Продукты собраны!" if won else "Не всё удалось собрать..."
 	result_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	result_title.add_theme_font_size_override("font_size", 24)
 	result_title.add_theme_color_override("font_color", CAFE_BROWN)
@@ -587,9 +587,9 @@ func _finish_game(won: bool) -> void:
 
 	var result_text := Label.new()
 	if won:
-		result_text.text = "Ура! Котокафе получит свои вкусности!\nСобрано: %d из %d" % [target_collected, TASK_AMOUNT]
+		result_text.text = "Ура! Угощения для вечеринки готовы!\nСобрано: %d из %d" % [target_collected, TASK_AMOUNT]
 	else:
-		result_text.text = "Заказ пока не готов.\nСобрано: %d из %d" % [target_collected, TASK_AMOUNT]
+		result_text.text = "Для вечеринки пока не хватает продуктов.\nСобрано: %d из %d" % [target_collected, TASK_AMOUNT]
 	result_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	result_text.add_theme_font_size_override("font_size", 16)
 	result_text.add_theme_color_override("font_color", CAFE_MUTED)

@@ -109,6 +109,23 @@ func _setup_hud() -> void:
 	leaderboard_label.text = "ТОП КОТИКОВ"
 	panel.add_child(leaderboard_label)
 
+	var map_button := Button.new()
+	map_button.text = "НА КАРТУ"
+	map_button.position = Vector2(16, 730)
+	map_button.size = Vector2(118, 42)
+	map_button.add_theme_font_size_override("font_size", 13)
+	map_button.add_theme_color_override("font_color", CAFE_BROWN)
+	var map_style := StyleBoxFlat.new()
+	map_style.bg_color = CAFE_PANEL
+	map_style.border_color = CAFE_PINK
+	map_style.set_border_width_all(2)
+	map_style.set_corner_radius_all(8)
+	map_button.add_theme_stylebox_override("normal", map_style)
+	map_button.add_theme_stylebox_override("hover", map_style)
+	map_button.add_theme_stylebox_override("pressed", map_style)
+	map_button.pressed.connect(_return_to_map)
+	$UI/UIRoot.add_child(map_button)
+
 func _spawn_bots() -> void:
 	for i in range(BOT_NAMES.size()):
 		var bot: Area2D = cat_scene.instantiate() as Area2D
@@ -146,3 +163,7 @@ func spawn_food() -> void:
 
 func _on_food_timer_timeout() -> void:
 	spawn_food()
+
+
+func _return_to_map() -> void:
+	GameState.return_to_map()

@@ -23,6 +23,7 @@ const BOT_NAMES := ["Пончик", "Луна", "Милки", "Персик", "�
 var max_food := 150
 var elapsed_time := 0.0
 var leaderboard_label: Label
+var game_over := false
 
 func _ready() -> void:
 	food_timer.timeout.connect(_on_food_timer_timeout)
@@ -37,8 +38,20 @@ func _ready() -> void:
 		spawn_food()
 
 func _process(delta: float) -> void:
+	if not is_instance_valid(player):
+		return
+	if bool(player.get("is_eaten")):
+		if not game_over:
+			game_over = true
+			food_timer.stop()
+			time_label.text = "ТЫ ПРОИГРАЛА"
+			mass_label.text = "МАССА  %d" % int(float(player.get("mass")))
+			return
+	if game_over:
+		return
 	elapsed_time += delta
-	camera.global_position = camera.global_position.lerp(player.global_position, min(delta * 7.0, 1.0))
+	if is_instance_valid(camera):
+		camera.global_position = camera.global_position.lerp(player.global_position, min(delta * 7.0, 1.0))
 	# As the cat grows, zoom out to keep more of the arena visible.
 	var target_zoom: float = clampf(0.82 - (float(player.get("mass")) / 900.0), 0.42, 0.82)
 	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 2.0, 1.0))

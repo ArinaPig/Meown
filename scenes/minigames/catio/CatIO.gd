@@ -101,8 +101,13 @@ func _spawn_bots() -> void:
 func _update_leaderboard() -> void:
 	if not is_instance_valid(leaderboard_label):
 		return
-	var cats: Array[Node] = get_tree().get_nodes_in_group("cats")
-	cats.sort_custom(func(a, b): return float(a.get("mass")) > float(b.get("mass")))
+	var cats: Array[Node] = []
+	for cat_node in get_tree().get_nodes_in_group("cats"):
+		if is_instance_valid(cat_node) and not cat_node.is_queued_for_deletion():
+			cats.append(cat_node)
+	cats.sort_custom(func(a: Node, b: Node) -> bool:
+		return float(a.get("mass")) > float(b.get("mass"))
+	)
 	var lines: PackedStringArray = ["ТОП КОТИКОВ"]
 	for i in range(mini(5, cats.size())):
 		var cat: Area2D = cats[i] as Area2D

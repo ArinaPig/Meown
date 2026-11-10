@@ -30,8 +30,7 @@ func _draw() -> void:
 	# 32x32 pixel-art avatar: round Agar.io blob with tiny cat ears.
 	var fur := body_color
 	var light := fur.lightened(0.30)
-	var dark := fur.darkened(0.12)
-	# Ears and outer circular silhouette, built from crisp 2px blocks.
+		# Ears and outer circular silhouette, built from crisp 2px blocks.
 	var rows := [
 		[10, 12], [6, 20], [4, 24], [2, 28],
 		[0, 32], [0, 32], [0, 32], [0, 32],
@@ -115,10 +114,10 @@ func _bot_think(delta: float) -> void:
 		if other == null or other == self or not is_instance_valid(other) or other.get("is_eaten"):
 			continue
 		var distance: float = global_position.distance_to(other.global_position)
-		if other.mass > mass * 1.18 and distance < threat_distance:
+		if float(other.get("mass")) > mass * 1.18 and distance < threat_distance:
 			threat = other
 			threat_distance = distance
-		elif mass > other.mass * 1.25 and distance < prey_distance:
+		elif mass > float(other.get("mass")) * 1.25 and distance < prey_distance:
 			prey = other
 			prey_distance = distance
 	for food_node in get_tree().get_nodes_in_group("food"):
@@ -162,7 +161,7 @@ func _on_area_entered(area: Area2D) -> void:
 			area.queue_free()
 		grow(value)
 	elif area.is_in_group("cats") and area != self:
-		if mass >= area.mass * 1.2 and not area.is_eaten:
-			area.is_eaten = true
-			grow(area.mass * 0.75)
+		if mass >= float(area.get("mass")) * 1.2 and not bool(area.get("is_eaten")):
+			bool(area.get("is_eaten")) = true
+			grow(float(area.get("mass")) * 0.75)
 			area.queue_free()

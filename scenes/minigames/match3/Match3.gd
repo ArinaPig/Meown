@@ -122,7 +122,6 @@ func _build_interface() -> void:
 		for x in range(BOARD_SIZE):
 			var tile := Button.new()
 			tile.custom_minimum_size = Vector2(55, 55)
-			tile.icon_max_width = 43
 			tile.expand_icon = true
 			tile.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			tile.pressed.connect(_on_tile_pressed.bind(Vector2i(x, y)))

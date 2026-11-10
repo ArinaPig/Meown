@@ -33,6 +33,8 @@ var tile_buttons: Array = []
 var selected_cell := Vector2i(-1, -1)
 var score := 0
 var busy := false
+var pointer_start_cell := Vector2i(-1, -1)
+var pointer_active := false
 
 var score_label: Label
 var hint_label: Label
@@ -124,7 +126,7 @@ func _build_interface() -> void:
 			tile.custom_minimum_size = Vector2(55, 55)
 			tile.expand_icon = true
 			tile.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			tile.pressed.connect(_on_tile_pressed.bind(Vector2i(x, y)))
+			tile.pivot_offset = tile.custom_minimum_size / 2.0
 			grid.add_child(tile)
 			row_buttons.append(tile)
 		tile_buttons.append(row_buttons)
@@ -167,33 +169,112 @@ func _new_game() -> void:
 	_update_score()
 	hint_label.text = "Выбери две соседние фишки"
 
-func _on_tile_pressed(cell: Vector2i) -> void:
+func _input(event: InputEvent) -> void:
+	var pressed := false
+	var released := false
+	var pointer_position := Vector2.ZERO
+
+	if event is InputEventScreenTouch:
+		pressed = event.pressed
+		released = not event.pressed
+		pointer_position = event.position
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		pressed = event.pressed
+		released = not event.pressed
+		pointer_position = event.position
+	else:
+		return
+
+	if pressed:
+		var cell := _cell_at_viewport_position(pointer_position)
+		if cell.x >= 0 and not busy:
+			pointer_start_cell = cell
+			pointer_active = true
+			selected_cell = cell
+			_refresh_board()
+			get_viewport().set_input_as_handled()
+	elif released and pointer_active:
+		var start_cell := pointer_start_cell
+		var end_cell := _cell_at_viewport_position(pointer_position)
+		pointer_active = false
+		pointer_start_cell = Vector2i(-1, -1)
+		get_viewport().set_input_as_handled()
+
+		if end_cell.x < 0:
+			selected_cell = Vector2i(-1, -1)
+			_refresh_board()
+		elif start_cell == end_cell:
+			_handle_tile_tap(end_cell)
+		elif abs(start_cell.x - end_cell.x) + abs(start_cell.y - end_cell.y) == 1:
+			selected_cell = Vector2i(-1, -1)
+			_try_swap(start_cell, end_cell)
+		else:
+			selected_cell = end_cell
+			hint_label.text = "Менять можно только соседние фишки"
+			_refresh_board()
+
+func _cell_at_viewport_position(viewport_position: Vector2) -> Vector2i:
+	if grid == null:
+		return Vector2i(-1, -1)
+	var local_position := grid.get_global_transform_with_canvas().affine_inverse() * viewport_position
+	for y in range(BOARD_SIZE):
+		for x in range(BOARD_SIZE):
+			var tile: Button = tile_buttons[y][x]
+			if Rect2(tile.position, tile.size).has_point(local_position):
+				return Vector2i(x, y)
+	return Vector2i(-1, -1)
+
+func _handle_tile_tap(cell: Vector2i) -> void:
 	if busy:
 		return
 	if selected_cell.x < 0:
 		selected_cell = cell
-		_refresh_board()
-		return
-	if selected_cell == cell:
+	elif selected_cell == cell:
 		selected_cell = Vector2i(-1, -1)
-		_refresh_board()
+	elif abs(selected_cell.x - cell.x) + abs(selected_cell.y - cell.y) == 1:
+		var first := selected_cell
+		selected_cell = Vector2i(-1, -1)
+		_try_swap(first, cell)
 		return
-	if abs(selected_cell.x - cell.x) + abs(selected_cell.y - cell.y) != 1:
+	else:
 		selected_cell = cell
-		_refresh_board()
-		return
+	_refresh_board()
 
-	var first := selected_cell
-	selected_cell = Vector2i(-1, -1)
-	_swap_cells(first, cell)
-	if _find_matches().is_empty():
-		_swap_cells(first, cell)
-		hint_label.text = "Совпадений нет — попробуй другой ход"
-		_refresh_board()
+func _try_swap(first: Vector2i, second: Vector2i) -> void:
+	if busy:
 		return
-
 	busy = true
-	_resolve_board()
+	hint_label.text = "Меняем фишки..."
+	var first_tile: Button = tile_buttons[first.y][first.x]
+	var second_tile: Button = tile_buttons[second.y][second.x]
+	var swap_out := create_tween().set_parallel(true)
+	swap_out.tween_property(first_tile, "scale", Vector2(0.82, 0.82), 0.08)
+	swap_out.tween_property(second_tile, "scale", Vector2(0.82, 0.82), 0.08)
+	await swap_out.finished
+
+	_swap_cells(first, second)
+	_refresh_board()
+	var swap_in := create_tween().set_parallel(true)
+	swap_in.tween_property(first_tile, "scale", Vector2.ONE, 0.12)
+	swap_in.tween_property(second_tile, "scale", Vector2.ONE, 0.12)
+	await swap_in.finished
+
+	if _find_matches().is_empty():
+		_swap_cells(first, second)
+		_refresh_board()
+		var return_tween := create_tween().set_parallel(true)
+		return_tween.tween_property(first_tile, "scale", Vector2(0.82, 0.82), 0.07)
+		return_tween.tween_property(second_tile, "scale", Vector2(0.82, 0.82), 0.07)
+		await return_tween.finished
+		var restore_tween := create_tween().set_parallel(true)
+		restore_tween.tween_property(first_tile, "scale", Vector2.ONE, 0.12)
+		restore_tween.tween_property(second_tile, "scale", Vector2.ONE, 0.12)
+		await restore_tween.finished
+		hint_label.text = "Совпадений нет — попробуй другой ход"
+		busy = false
+		return
+
+	await _resolve_board()
 
 func _swap_cells(a: Vector2i, b: Vector2i) -> void:
 	var temp = board[a.y][a.x]
@@ -231,13 +312,31 @@ func _resolve_board() -> void:
 	var matches := _find_matches()
 	while not matches.is_empty():
 		score += matches.size() * 10
+		var vanish_tween := create_tween().set_parallel(true)
+		for cell in matches:
+			var tile: Button = tile_buttons[cell.y][cell.x]
+			vanish_tween.tween_property(tile, "scale", Vector2(0.15, 0.15), 0.16)
+			vanish_tween.tween_property(tile, "modulate:a", 0.0, 0.16)
+		await vanish_tween.finished
+
 		for cell in matches:
 			board[cell.y][cell.x] = -1
 		_apply_gravity()
 		_refill_board()
+		_refresh_board()
+
+		var appear_tween := create_tween().set_parallel(true)
+		for y in range(BOARD_SIZE):
+			for x in range(BOARD_SIZE):
+				var tile: Button = tile_buttons[y][x]
+				tile.scale = Vector2(0.72, 0.72)
+				tile.modulate.a = 0.65
+				appear_tween.tween_property(tile, "scale", Vector2.ONE, 0.18)
+				appear_tween.tween_property(tile, "modulate:a", 1.0, 0.18)
+		await appear_tween.finished
 		matches = _find_matches()
+
 	_update_score()
-	_refresh_board()
 	hint_label.text = "Отлично! Собирай продукты дальше"
 	busy = false
 

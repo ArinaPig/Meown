@@ -17,16 +17,20 @@ const OUTLINE := Color("#65372F")
 const CREAM := Color("#FFF0D8")
 const PINK := Color("#F2A5B5")
 const PIXEL := 2
+const START_MASS := 20.0
+const MAX_CAT_SCALE := 3.2
 
 func _ready() -> void:
 	add_to_group("cats")
 	area_entered.connect(_on_area_entered)
-	scale = Vector2.ONE * clampf(1.0 + mass / 180.0, 1.0, 3.2)
+	scale = Vector2.ONE * _scale_for_mass(mass)
 	if not is_player:
 		bot_target = global_position + Vector2(randf_range(-400, 400), randf_range(-400, 400))
 	queue_redraw()
 
 func _draw() -> void:
+	# Keep the 32x32 avatar centered on the Area2D origin so it grows evenly.
+	draw_set_transform(Vector2(-16.0, -16.0), 0.0, Vector2.ONE)
 	# 32x32 pixel-art avatar: round Agar.io blob with tiny cat ears.
 	var fur := body_color
 	var light := fur.lightened(0.30)
@@ -138,15 +142,21 @@ func _bot_think(delta: float) -> void:
 		bot_target = Vector2(randf_range(-850, 850), randf_range(-850, 850))
 		move_direction = (bot_target - global_position).normalized()
 
+func _scale_for_mass(value: float) -> float:
+	# A square-root curve makes each pickup visibly affect the cat size.
+	return clampf(sqrt(maxf(value, START_MASS) / START_MASS), 1.0, MAX_CAT_SCALE)
+
 func grow(amount: float) -> void:
+	if amount <= 0.0 or is_eaten:
+		return
 	mass += amount
-	var target_scale: float = clampf(1.0 + mass / 180.0, 1.0, 3.2)
+	var target_scale: float = _scale_for_mass(mass)
 	var tween := create_tween()
-	tween.tween_property(self, "scale", Vector2.ONE * target_scale, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "scale", Vector2.ONE * target_scale, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func reset_mass() -> void:
-	mass = 20.0
-	scale = Vector2.ONE
+	mass = START_MASS
+	scale = Vector2.ONE * _scale_for_mass(mass)
 	queue_redraw()
 
 func _on_area_entered(area: Area2D) -> void:

@@ -38,7 +38,7 @@ func _draw() -> void:
 		[2, 28], [4, 24], [6, 20], [10, 12]
 	]
 	for row in range(rows.size()):
-		var y := row * PIXEL + 4
+		var y: int = row * PIXEL + 4
 		var x: int = int(rows[row][0])
 		var width: int = int(rows[row][1])
 		draw_rect(Rect2(x, y, width, PIXEL), OUTLINE)
@@ -93,9 +93,9 @@ func _physics_process(delta: float) -> void:
 		return
 	if not is_player:
 		_bot_think(delta)
-	var current_speed := maxf(85.0, base_speed / (1.0 + sqrt(mass / 100.0)))
+	var current_speed: float = maxf(85.0, base_speed / (1.0 + sqrt(mass / 100.0)))
 	global_position += move_direction * current_speed * delta
-	var radius := 18.0 * scale.x
+	var radius: float = 18.0 * scale.x
 	global_position.x = clampf(global_position.x, -ARENA_LIMIT + radius, ARENA_LIMIT - radius)
 	global_position.y = clampf(global_position.y, -ARENA_LIMIT + radius, ARENA_LIMIT - radius)
 
@@ -110,20 +110,22 @@ func _bot_think(delta: float) -> void:
 	var threat_distance := INF
 	var prey: Node2D
 	var prey_distance := INF
-	for other in get_tree().get_nodes_in_group("cats"):
-		if other == self or not is_instance_valid(other) or other.is_eaten:
+	for other_node in get_tree().get_nodes_in_group("cats"):
+		var other: Area2D = other_node as Area2D
+		if other == null or other == self or not is_instance_valid(other) or other.get("is_eaten"):
 			continue
-		var distance := global_position.distance_to(other.global_position)
+		var distance: float = global_position.distance_to(other.global_position)
 		if other.mass > mass * 1.18 and distance < threat_distance:
 			threat = other
 			threat_distance = distance
 		elif mass > other.mass * 1.25 and distance < prey_distance:
 			prey = other
 			prey_distance = distance
-	for food in get_tree().get_nodes_in_group("food"):
-		if not is_instance_valid(food):
+	for food_node in get_tree().get_nodes_in_group("food"):
+		var food: Node2D = food_node as Node2D
+		if food == null or not is_instance_valid(food):
 			continue
-		var distance := global_position.distance_to(food.global_position)
+		var distance: float = global_position.distance_to(food.global_position)
 		if distance < nearest_food_distance:
 			nearest_food = food
 			nearest_food_distance = distance
@@ -139,7 +141,7 @@ func _bot_think(delta: float) -> void:
 
 func grow(amount: float) -> void:
 	mass += amount
-	var target_scale := clampf(1.0 + mass / 180.0, 1.0, 3.2)
+	var target_scale: float = clampf(1.0 + mass / 180.0, 1.0, 3.2)
 	var tween := create_tween()
 	tween.tween_property(self, "scale", Vector2.ONE * target_scale, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 

@@ -19,6 +19,12 @@ var party_button: Button
 var transition_overlay: ColorRect
 var _transitioning: bool = false
 var _button_tweens: Dictionary = {}
+var _animation_time: float = 0.0
+
+func _process(delta: float) -> void:
+	_animation_time += delta
+	if map_asset_layer == null or not bool(map_asset_layer.call("is_asset_pack_active")):
+		queue_redraw()
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -70,9 +76,9 @@ func _draw() -> void:
 	_draw_lamp(Vector2(235, 375))
 	_draw_lamp(Vector2(245, 545))
 	_draw_bench(Vector2(315, 655))
-	_draw_resident_cat(Vector2(250, 270), Color("#F2B36F"), Color("#FFF0D8"))
-	_draw_resident_cat(Vector2(405, 535), Color("#A9C8E3"), Color("#FFF0D8"))
-	_draw_resident_cat(Vector2(285, 700), Color("#E58E82"), Color("#FFF0D8"))
+	_draw_resident_cat(Vector2(250, 270), Color("#F2B36F"), Color("#FFF0D8"), 0.0)
+	_draw_resident_cat(Vector2(405, 535), Color("#A9C8E3"), Color("#FFF0D8"), 1.3)
+	_draw_resident_cat(Vector2(285, 700), Color("#E58E82"), Color("#FFF0D8"), 2.6)
 	_draw_pawprints(Vector2(205, 390), 4, Vector2(13, 15))
 	_draw_pawprints(Vector2(260, 505), 3, Vector2(-12, 13))
 
@@ -152,21 +158,34 @@ func _draw_bench(center: Vector2) -> void:
 	draw_rect(Rect2(center + Vector2(12, 2), Vector2(5, 12)), CAFE_BROWN)
 
 
-func _draw_resident_cat(center: Vector2, fur: Color, muzzle: Color) -> void:
-	# Tiny neighborhood cats, drawn as crisp pixel sprites.
-	draw_rect(Rect2(center + Vector2(-10, -7), Vector2(20, 17)), CAFE_BROWN)
-	draw_rect(Rect2(center + Vector2(-8, -11), Vector2(16, 17)), fur)
-	draw_rect(Rect2(center + Vector2(-9, -16), Vector2(6, 8)), CAFE_BROWN)
-	draw_rect(Rect2(center + Vector2(3, -16), Vector2(6, 8)), CAFE_BROWN)
-	draw_rect(Rect2(center + Vector2(-7, -13), Vector2(4, 6)), fur)
-	draw_rect(Rect2(center + Vector2(3, -13), Vector2(4, 6)), fur)
-	draw_rect(Rect2(center + Vector2(-5, -6), Vector2(3, 3)), CAFE_BROWN)
-	draw_rect(Rect2(center + Vector2(3, -6), Vector2(3, 3)), CAFE_BROWN)
-	draw_rect(Rect2(center + Vector2(-3, 0), Vector2(6, 4)), muzzle)
-	draw_rect(Rect2(center + Vector2(-2, 1), Vector2(3, 2)), CAFE_PINK)
-	draw_rect(Rect2(center + Vector2(-8, 9), Vector2(5, 4)), CAFE_BROWN)
-	draw_rect(Rect2(center + Vector2(3, 9), Vector2(5, 4)), CAFE_BROWN)
-	draw_rect(Rect2(center + Vector2(8, -2), Vector2(5, 3)), fur)
+func _draw_resident_cat(center: Vector2, fur: Color, muzzle: Color, animation_phase: float) -> void:
+	# Tiny pixel cats gently bob, sway their tails and blink at different moments.
+	var bob := sin(_animation_time * 2.0 + animation_phase) * 2.0
+	var animated_center := center + Vector2(0.0, bob)
+	var tail_sway := sin(_animation_time * 2.8 + animation_phase) * 2.0
+	var is_blinking := fposmod(_animation_time + animation_phase, 4.0) < 0.16
+
+	# Tail is drawn first so it stays behind the body.
+	draw_rect(Rect2(animated_center + Vector2(8, -1 + tail_sway), Vector2(5, 4)), CAFE_BROWN)
+	draw_rect(Rect2(animated_center + Vector2(11, -4 + tail_sway), Vector2(4, 4)), fur)
+	draw_rect(Rect2(animated_center + Vector2(-10, -7), Vector2(20, 17)), CAFE_BROWN)
+	draw_rect(Rect2(animated_center + Vector2(-8, -11), Vector2(16, 17)), fur)
+	draw_rect(Rect2(animated_center + Vector2(-9, -16), Vector2(6, 8)), CAFE_BROWN)
+	draw_rect(Rect2(animated_center + Vector2(3, -16), Vector2(6, 8)), CAFE_BROWN)
+	draw_rect(Rect2(animated_center + Vector2(-7, -13), Vector2(4, 6)), fur)
+	draw_rect(Rect2(animated_center + Vector2(3, -13), Vector2(4, 6)), fur)
+
+	if is_blinking:
+		draw_rect(Rect2(animated_center + Vector2(-5, -5), Vector2(4, 1)), CAFE_BROWN)
+		draw_rect(Rect2(animated_center + Vector2(2, -5), Vector2(4, 1)), CAFE_BROWN)
+	else:
+		draw_rect(Rect2(animated_center + Vector2(-5, -6), Vector2(3, 3)), CAFE_BROWN)
+		draw_rect(Rect2(animated_center + Vector2(3, -6), Vector2(3, 3)), CAFE_BROWN)
+
+	draw_rect(Rect2(animated_center + Vector2(-3, 0), Vector2(6, 4)), muzzle)
+	draw_rect(Rect2(animated_center + Vector2(-2, 1), Vector2(3, 2)), CAFE_PINK)
+	draw_rect(Rect2(animated_center + Vector2(-8, 9), Vector2(5, 4)), CAFE_BROWN)
+	draw_rect(Rect2(animated_center + Vector2(3, 9), Vector2(5, 4)), CAFE_BROWN)
 
 func _draw_pawprints(start: Vector2, count: int, step: Vector2) -> void:
 	for i in range(count):

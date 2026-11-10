@@ -111,7 +111,7 @@ func _bot_think(delta: float) -> void:
 	var prey_distance := INF
 	for other_node in get_tree().get_nodes_in_group("cats"):
 		var other: Area2D = other_node as Area2D
-		if other == null or other == self or not is_instance_valid(other) or other.get("is_eaten"):
+		if not is_instance_valid(other) or other == self or bool(other.get("is_eaten")):
 			continue
 		var distance: float = global_position.distance_to(other.global_position)
 		if float(other.get("mass")) > mass * 1.18 and distance < threat_distance:
@@ -122,17 +122,17 @@ func _bot_think(delta: float) -> void:
 			prey_distance = distance
 	for food_node in get_tree().get_nodes_in_group("food"):
 		var food: Node2D = food_node as Node2D
-		if food == null or not is_instance_valid(food):
+		if not is_instance_valid(food):
 			continue
 		var distance: float = global_position.distance_to(food.global_position)
 		if distance < nearest_food_distance:
 			nearest_food = food
 			nearest_food_distance = distance
-	if threat and threat_distance < 260.0:
+	if is_instance_valid(threat) and threat_distance < 260.0:
 		move_direction = (global_position - threat.global_position).normalized()
-	elif prey and prey_distance < 220.0:
+	elif is_instance_valid(prey) and prey_distance < 220.0:
 		move_direction = (prey.global_position - global_position).normalized()
-	elif nearest_food and nearest_food_distance < 420.0:
+	elif is_instance_valid(nearest_food) and nearest_food_distance < 420.0:
 		move_direction = (nearest_food.global_position - global_position).normalized()
 	elif global_position.distance_to(bot_target) < 50.0:
 		bot_target = Vector2(randf_range(-850, 850), randf_range(-850, 850))

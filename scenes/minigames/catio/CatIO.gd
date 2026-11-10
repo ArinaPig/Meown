@@ -31,6 +31,11 @@ func _ready() -> void:
 		food_scene = load("res://scenes/minigames/catio/Food.tscn")
 	if not cat_scene:
 		cat_scene = load("res://scenes/minigames/catio/Cat.tscn")
+	# Keep the camera view inside the pink arena so the outer clear-color area is never exposed.
+	camera.limit_left = -1000
+	camera.limit_top = -1000
+	camera.limit_right = 1000
+	camera.limit_bottom = 1000
 	_setup_arena()
 	_setup_hud()
 	_spawn_bots()

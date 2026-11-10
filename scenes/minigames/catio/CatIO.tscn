@@ -9,7 +9,7 @@ script = ExtResource("1_xag7g")
 food_scene = ExtResource("2_nsubi")
 
 [node name="Background" type="Polygon2D" parent="." unique_id=1920880520]
-color = Color(0, 1, 0.6745098, 1)
+color = Color(0.56755406, 0.93878883, 0.7734541, 1)
 polygon = PackedVector2Array(-1000, -1000, 1000, -1000, 1000, 1000, -1000, 1000)
 
 [node name="YSort" type="Node2D" parent="." unique_id=1471300549]

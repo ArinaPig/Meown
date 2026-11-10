@@ -5,7 +5,9 @@ extends Control
 # Управление: выберите две соседние фишки.
 
 const BOARD_SIZE := 7
-const SHOP_GOAL := 500
+const TASK_AMOUNT := 12
+const STARTING_MOVES := 20
+const TILE_NAMES: Array[String] = ["рыбок", "бутылочек молока", "пирожных", "пончиков", "кусочков сыра", "курочек", "клубочков"]
 const TILE_TEXTURES: Array[Texture2D] = [
 	preload("res://assets/minigames/match3/fish.png"),
 	preload("res://assets/minigames/match3/milk.png"),
@@ -33,11 +35,18 @@ var board: Array = []
 var tile_buttons: Array = []
 var selected_cell := Vector2i(-1, -1)
 var score := 0
+var moves_left := STARTING_MOVES
+var target_kind := 2
+var target_collected := 0
+var game_over := false
+var result_overlay: Control
 var busy := false
 var pointer_start_cell := Vector2i(-1, -1)
 var pointer_active := false
 
 var score_label: Label
+var task_label: Label
+var moves_label: Label
 var hint_label: Label
 var grid: GridContainer
 
@@ -92,6 +101,31 @@ func _build_interface() -> void:
 	score_label.add_theme_font_size_override("font_size", 20)
 	score_label.add_theme_color_override("font_color", CAFE_BROWN)
 	score_panel.add_child(score_label)
+
+	var task_panel := PanelContainer.new()
+	var task_style := StyleBoxFlat.new()
+	task_style.bg_color = Color("#FFF7E8")
+	task_style.border_color = CAFE_BROWN
+	task_style.set_border_width_all(2)
+	task_style.set_corner_radius_all(12)
+	task_panel.add_theme_stylebox_override("panel", task_style)
+	layout.add_child(task_panel)
+
+	var task_layout := VBoxContainer.new()
+	task_layout.add_theme_constant_override("separation", 3)
+	task_panel.add_child(task_layout)
+
+	task_label = Label.new()
+	task_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	task_label.add_theme_font_size_override("font_size", 17)
+	task_label.add_theme_color_override("font_color", CAFE_BROWN)
+	task_layout.add_child(task_label)
+
+	moves_label = Label.new()
+	moves_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	moves_label.add_theme_font_size_override("font_size", 15)
+	moves_label.add_theme_color_override("font_color", CAFE_MUTED)
+	task_layout.add_child(moves_label)
 
 	hint_label = Label.new()
 	hint_label.text = "Выбери две соседние фишки"
@@ -158,6 +192,10 @@ func _build_interface() -> void:
 
 func _new_game() -> void:
 	score = 0
+	moves_left = STARTING_MOVES
+	target_kind = randi() % TILE_TEXTURES.size()
+	target_collected = 0
+	game_over = false
 	selected_cell = Vector2i(-1, -1)
 	board.clear()
 	for y in range(BOARD_SIZE):
@@ -178,6 +216,7 @@ func _new_game() -> void:
 	if not _has_possible_move():
 		_shuffle_board()
 	_update_score()
+	_update_task_display()
 	hint_label.text = "Выбери две соседние фишки"
 
 func _input(event: InputEvent) -> void:
@@ -250,7 +289,7 @@ func _handle_tile_tap(cell: Vector2i) -> void:
 	_refresh_board()
 
 func _try_swap(first: Vector2i, second: Vector2i) -> void:
-	if busy:
+	if busy or game_over:
 		return
 	busy = true
 	hint_label.text = "Меняем фишки..."
@@ -285,6 +324,8 @@ func _try_swap(first: Vector2i, second: Vector2i) -> void:
 		busy = false
 		return
 
+	moves_left -= 1
+	_update_task_display()
 	await _resolve_board()
 
 func _swap_cells(a: Vector2i, b: Vector2i) -> void:
@@ -323,6 +364,10 @@ func _resolve_board() -> void:
 	var matches := _find_matches()
 	while not matches.is_empty():
 		score += matches.size() * 10
+		for cell in matches:
+			if int(board[cell.y][cell.x]) == target_kind:
+				target_collected += 1
+		_update_task_display()
 		var changed_cells := {}
 		var vanish_tween := create_tween().set_parallel(true)
 		for cell in matches:
@@ -355,18 +400,18 @@ func _resolve_board() -> void:
 		await appear_tween.finished
 		matches = _find_matches()
 
+	_update_score()
+	_update_task_display()
+	if target_collected >= TASK_AMOUNT:
+		_finish_game(true)
+		return
+	if moves_left <= 0:
+		_finish_game(false)
+		return
 	if not _has_possible_move():
 		_shuffle_board()
-	_update_score()
-	if score >= SHOP_GOAL and GameState.story_step == GameState.StoryStep.SHOP:
-		GameState.complete_shop()
-		hint_label.text = "Ура! Угощения собраны!"
-		busy = true
-		await get_tree().create_timer(1.0).timeout
-		GameState.return_to_map()
-		return
 
-	hint_label.text = "Отлично! Собирай продукты дальше"
+	hint_label.text = "Отлично! Продолжай выполнять заказ"
 	busy = false
 
 func _apply_gravity() -> void:
@@ -485,6 +530,89 @@ func _update_score() -> void:
 		best_score = score
 	score_label.text = "Угощения: %d / %d   Рекорд: %d" % [score, SHOP_GOAL, best_score]
 
+
+func _update_task_display() -> void:
+	if task_label == null or moves_label == null:
+		return
+	task_label.text = "Заказ: собери %d %s — %d / %d" % [TASK_AMOUNT, TILE_NAMES[target_kind], target_collected, TASK_AMOUNT]
+	moves_label.text = "Осталось ходов: %d" % moves_left
+
+func _finish_game(won: bool) -> void:
+	if game_over:
+		return
+	game_over = true
+	busy = true
+	if won and GameState.story_step == GameState.StoryStep.SHOP:
+		GameState.complete_shop()
+
+	result_overlay = Control.new()
+	result_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	result_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(result_overlay)
+
+	var shade := ColorRect.new()
+	shade.color = Color(0.22, 0.12, 0.10, 0.72)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	result_overlay.add_child(shade)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	result_overlay.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(330, 0)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = CAFE_PANEL
+	panel_style.border_color = CAFE_BROWN
+	panel_style.set_border_width_all(3)
+	panel_style.set_corner_radius_all(18)
+	panel_style.content_margin_left = 18
+	panel_style.content_margin_right = 18
+	panel_style.content_margin_top = 20
+	panel_style.content_margin_bottom = 20
+	panel.add_theme_stylebox_override("panel", panel_style)
+	center.add_child(panel)
+
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 12)
+	panel.add_child(content)
+
+	var result_title := Label.new()
+	result_title.text = "Заказ выполнен!" if won else "Не хватило ходов..."
+	result_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result_title.add_theme_font_size_override("font_size", 24)
+	result_title.add_theme_color_override("font_color", CAFE_BROWN)
+	content.add_child(result_title)
+
+	var result_text := Label.new()
+	if won:
+		result_text.text = "Ура! Котокафе получит свои вкусности!\nСобрано: %d из %d" % [target_collected, TASK_AMOUNT]
+	else:
+		result_text.text = "Заказ пока не готов.\nСобрано: %d из %d" % [target_collected, TASK_AMOUNT]
+	result_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result_text.add_theme_font_size_override("font_size", 16)
+	result_text.add_theme_color_override("font_color", CAFE_MUTED)
+	content.add_child(result_text)
+
+	var retry_button := Button.new()
+	retry_button.text = "Попробовать ещё"
+	retry_button.custom_minimum_size = Vector2(0, 48)
+	retry_button.pressed.connect(_restart_from_result)
+	content.add_child(retry_button)
+
+	var map_button := Button.new()
+	map_button.text = "На карту"
+	map_button.custom_minimum_size = Vector2(0, 44)
+	map_button.pressed.connect(_return_to_map)
+	content.add_child(map_button)
+
+func _restart_from_result() -> void:
+	if is_instance_valid(result_overlay):
+		result_overlay.queue_free()
+	result_overlay = null
+	busy = false
+	_new_game()
 
 func _return_to_map() -> void:
 	GameState.return_to_map()

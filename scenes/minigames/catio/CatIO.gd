@@ -171,7 +171,7 @@ func _show_game_over(final_mass: int) -> void:
 	content.add_child(title)
 
 	var result := Label.new()
-	result.text = "Твоя масса: %d\\nРекорд: %d" % [final_mass, int(GameState.high_scores.get("catio", 0))]
+	result.text = "Твоя масса: %d\nРекорд: %d" % [final_mass, int(GameState.high_scores.get("catio", 0))]
 	result.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	result.add_theme_font_size_override("font_size", 17)
 	result.add_theme_color_override("font_color", CAFE_MUTED)

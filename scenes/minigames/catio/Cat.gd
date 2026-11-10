@@ -11,6 +11,7 @@ var can_move := true
 var bot_target := Vector2.ZERO
 var think_timer := 0.0
 var is_eaten := false
+var spawn_protection_timer := 2.5
 
 const ARENA_LIMIT := 1000.0
 const OUTLINE := Color("#65372F")
@@ -94,6 +95,7 @@ func _update_player_direction() -> void:
 func _physics_process(delta: float) -> void:
 	if not can_move or is_eaten:
 		return
+	spawn_protection_timer = maxf(0.0, spawn_protection_timer - delta)
 	if not is_player:
 		_bot_think(delta)
 	var current_speed: float = maxf(85.0, base_speed / (1.0 + sqrt(mass / 100.0)))
@@ -173,6 +175,9 @@ func _on_area_entered(area: Area2D) -> void:
 			area.queue_free()
 		grow(value)
 	elif area.is_in_group("cats") and area != self:
+		# Newly spawned cats cannot be eaten for a short grace period.
+		if spawn_protection_timer > 0.0 or float(area.get("spawn_protection_timer")) > 0.0:
+			return
 		if mass >= float(area.get("mass")) * 1.2 and not bool(area.get("is_eaten")):
 			var eaten_mass: float = float(area.get("mass"))
 			area.set("is_eaten", true)

@@ -18,7 +18,7 @@ const CREAM := Color("#FFF0D8")
 const PINK := Color("#F2A5B5")
 const PIXEL := 2
 const START_MASS := 20.0
-const MAX_CAT_SCALE := 6.0
+const MAX_CAT_SCALE := 12.0
 
 func _ready() -> void:
 	add_to_group("cats")

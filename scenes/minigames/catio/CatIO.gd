@@ -40,10 +40,10 @@ func _process(delta: float) -> void:
 	elapsed_time += delta
 	camera.global_position = camera.global_position.lerp(player.global_position, min(delta * 7.0, 1.0))
 	# As the cat grows, zoom out to keep more of the arena visible.
-	var target_zoom: float = clampf(0.82 - (player.mass / 900.0), 0.42, 0.82)
+	var target_zoom: float = clampf(0.82 - (float(player.get("mass")) / 900.0), 0.42, 0.82)
 	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 2.0, 1.0))
 	time_label.text = "ВРЕМЯ  %02d:%02d" % [int(elapsed_time) / 60, int(elapsed_time) % 60]
-	mass_label.text = "МАССА  %d" % int(player.mass)
+	mass_label.text = "МАССА  %d" % int(float(player.get("mass")))
 	_update_leaderboard()
 
 func _setup_arena() -> void:
@@ -91,10 +91,10 @@ func _setup_hud() -> void:
 func _spawn_bots() -> void:
 	for i in range(BOT_NAMES.size()):
 		var bot: Area2D = cat_scene.instantiate() as Area2D
-		bot.is_player = false
-		bot.bot_name = BOT_NAMES[i]
-		bot.body_color = BOT_COLORS[i]
-		bot.mass = randf_range(18.0, 55.0)
+		bot.set("is_player", false)
+		bot.set("bot_name", BOT_NAMES[i])
+		bot.set("body_color", BOT_COLORS[i])
+		bot.set("mass", randf_range(18.0, 55.0))
 		bot.position = Vector2(randf_range(-780, 780), randf_range(-780, 780))
 		ysort.add_child(bot)
 
@@ -102,12 +102,12 @@ func _update_leaderboard() -> void:
 	if not is_instance_valid(leaderboard_label):
 		return
 	var cats: Array[Node] = get_tree().get_nodes_in_group("cats")
-	cats.sort_custom(func(a, b): return a.mass > b.mass)
+	cats.sort_custom(func(a, b): return float(a.get("mass")) > float(b.get("mass")))
 	var lines: PackedStringArray = ["ТОП КОТИКОВ"]
 	for i in range(mini(5, cats.size())):
 		var cat: Area2D = cats[i] as Area2D
-		var cat_display_name: String = "Ты" if cat == player else str(cat.bot_name)
-		lines.append("%d. %s  %d" % [i + 1, cat_display_name, int(cat.mass)])
+		var cat_display_name: String = "Ты" if cat == player else str(str(cat.get("bot_name")))
+		lines.append("%d. %s  %d" % [i + 1, cat_display_name, int(cat.get("mass"))])
 	leaderboard_label.text = "\n".join(lines)
 
 func spawn_food() -> void:

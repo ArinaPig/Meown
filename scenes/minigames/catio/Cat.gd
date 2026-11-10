@@ -150,6 +150,8 @@ func reset_mass() -> void:
 	queue_redraw()
 
 func _on_area_entered(area: Area2D) -> void:
+	if not is_instance_valid(area) or area.is_queued_for_deletion():
+		return
 	if is_eaten:
 		return
 	if area.is_in_group("food"):
@@ -162,6 +164,12 @@ func _on_area_entered(area: Area2D) -> void:
 		grow(value)
 	elif area.is_in_group("cats") and area != self:
 		if mass >= float(area.get("mass")) * 1.2 and not bool(area.get("is_eaten")):
+			var eaten_mass: float = float(area.get("mass"))
 			area.set("is_eaten", true)
-			grow(float(area.get("mass")) * 0.75)
-			area.queue_free()
+			grow(eaten_mass * 0.75)
+			if bool(area.get("is_player")):
+				# Keep the player node alive so the HUD/camera never access a freed object.
+				area.set("can_move", false)
+				area.modulate = Color(1.0, 1.0, 1.0, 0.45)
+			else:
+				area.queue_free()

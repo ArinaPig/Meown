@@ -17,6 +17,7 @@ func _ready() -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	draw_set_transform(Vector2(-16, -16))
 	# Котик в пиксельном стиле: все элементы кратны 4 px (спрайт 32x32).
 	var pixels := [
 		[Vector2(8, 0), Vector2(8, 4), OUTLINE],

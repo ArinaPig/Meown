@@ -29,16 +29,16 @@
     {
       "name": "shop_building",
       "texture": "res://assets/map/buildings/shop.png",
-      "position": [53, 217],
-      "size": [144, 136],
+      "position": [57, 217],
+      "size": [136, 128],
       "z_index": 2,
       "required": true
     },
     {
       "name": "home_building",
       "texture": "res://assets/map/buildings/home.png",
-      "position": [278, 344],
-      "size": [144, 150],
+      "position": [282, 350],
+      "size": [136, 128],
       "z_index": 2,
       "required": true
     },

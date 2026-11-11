@@ -1,0 +1,70 @@
+{
+  "complete": false,
+  "canvas": [480, 800],
+  "layers": [
+    {
+      "name": "map_background",
+      "texture": "res://assets/map/background/map_background.png",
+      "position": [0, 0],
+      "size": [480, 800],
+      "z_index": -20,
+      "required": true
+    },
+    {
+      "name": "water_and_pond",
+      "texture": "res://assets/map/nature/water_and_pond.png",
+      "position": [0, 560],
+      "size": [480, 240],
+      "z_index": -12,
+      "required": false
+    },
+    {
+      "name": "main_path",
+      "texture": "res://assets/map/paths/main_path.png",
+      "position": [0, 0],
+      "size": [480, 800],
+      "z_index": -8,
+      "required": true
+    },
+    {
+      "name": "shop_building",
+      "texture": "res://assets/map/buildings/shop.png",
+      "position": [53, 217],
+      "size": [144, 136],
+      "z_index": 2,
+      "required": true
+    },
+    {
+      "name": "home_building",
+      "texture": "res://assets/map/buildings/home.png",
+      "position": [278, 344],
+      "size": [144, 150],
+      "z_index": 2,
+      "required": true
+    },
+    {
+      "name": "party_picnic",
+      "texture": "res://assets/map/buildings/party_picnic.png",
+      "position": [75, 565],
+      "size": [160, 100],
+      "z_index": 2,
+      "required": true
+    },
+    {
+      "name": "trees_and_bushes_front",
+      "texture": "res://assets/map/nature/foreground_plants.png",
+      "position": [0, 0],
+      "size": [480, 800],
+      "z_index": 5,
+      "required": false
+    },
+    {
+      "name": "resident_cats",
+      "texture": "res://assets/map/characters/resident_cats.png",
+      "position": [0, 0],
+      "size": [480, 800],
+      "z_index": 8,
+      "required": false
+    }
+  ]
+}

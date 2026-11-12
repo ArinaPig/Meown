@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://c6dn118eh7yhc"]
+
+[ext_resource type="Texture2D" uid="uid://dbjo2sxm0pe8v" path="res://assets/minigames/hidden_object/bedroom/Пастельная пиксельная спальня с котиками.png" id="1_3k237"]
+[ext_resource type="Script" uid="uid://cyd7yaood176m" path="res://scenes/minigames/hidden_object/HiddenObject.gd" id="1_xw8qs"]
+[ext_resource type="PackedScene" uid="uid://b7chxl7hc5838" path="res://scenes/minigames/hidden_object/SearchTarget.tscn" id="3_6fsex"]
+
+[node name="HiddenObject" type="Node2D" unique_id=1457601528]
+script = ExtResource("1_xw8qs")
+
+[node name="Background" type="Sprite2D" parent="." unique_id=180865443]
+position = Vector2(261, 496)
+scale = Vector2(0.6005081, 0.7108202)
+texture = ExtResource("1_3k237")
+
+[node name="Targets" type="Node2D" parent="." unique_id=39352926]
+
+[node name="BowTarget" parent="Targets" unique_id=2124616897 instance=ExtResource("3_6fsex")]
+position = Vector2(42, 56)
+
+[node name="CounterPanel" type="ColorRect" parent="." unique_id=643279441]
+offset_left = 19.0
+offset_top = 28.0
+offset_right = 230.0
+offset_bottom = 70.0
+color = Color(1, 0.9411765, 0.8509804, 1)
+
+[node name="Label" type="Label" parent="CounterPanel" unique_id=173647351]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 1.0
+offset_right = 203.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.39607844, 0.2, 0.13725491, 1)
+theme_override_colors/font_outline_color = Color(1, 0.9411765, 0.8509804, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 28
+text = "Найдено: 0 / 4"

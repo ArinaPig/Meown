@@ -1,0 +1,29 @@
+name: Сборка RPM для ОС Аврора
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    name: Godot -> RPM (aarch64, armv7hl)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+      - name: Определение версии
+        run: |
+          version="$(echo '${{ gitverse.ref_name }}' | sed -n 's/^v\{0,1\}\([0-9][0-9.]*\)$/\1/p')"
+          echo "${version:-0.1.0}" > .version
+      - name: Проверка подготовительных файлов
+        run: |
+          test -f certs/regular_key.pem
+          test -f certs/regular_cert.pem
+          for size in 86 108 128 172; do test -f "icons/${size}.png"; done
+      - name: Сборка PCK и RPM в образе Aurora Build Tools
+        uses: docker://hub.omp.ru/public/sdk-build-tools:5.1.3
+        with:
+          entrypoint: sh
+          args: ci/build_rpm.sh
+      - name: Сохранение RPM как артефакта
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurora-rpm
+          path: out/*.rpm

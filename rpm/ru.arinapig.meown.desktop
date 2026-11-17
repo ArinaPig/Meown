@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+X-Nemo-Application-Type=no-invoker
+Icon=ru.arinapig.meown
+Exec=/usr/bin/ru.arinapig.meown --main-pack /usr/share/ru.arinapig.meown/resources.pck
+Name=Meown
+Comment=Pixel-art cat adventure
+Categories=Game;
+
+[X-Application]
+Permissions=Audio
+OrganizationName=ru.arinapig
+ApplicationName=meown

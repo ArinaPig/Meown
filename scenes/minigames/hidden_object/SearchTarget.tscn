@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://b7chxl7hc5838"]
+
+[ext_resource type="Script" uid="uid://de0eud181ouk0" path="res://scenes/minigames/hidden_object/SearchTarget.gd" id="1_4ybk0"]
+[ext_resource type="Texture2D" uid="uid://geqy3vu1ccjm" path="res://assets/minigames/hidden_object/bedroom/targets/bow.png" id="1_xku7y"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dxdm2"]
+size = Vector2(110.25, 90.75)
+
+[node name="SearchTarget" type="Area2D" unique_id=2124616897]
+script = ExtResource("1_4ybk0")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1198608104]
+position = Vector2(497.00003, 62.000004)
+scale = Vector2(0.3128719, 0.2996997)
+texture = ExtResource("1_xku7y")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1010446458]
+position = Vector2(499.875, 64.625)
+shape = SubResource("RectangleShape2D_dxdm2")

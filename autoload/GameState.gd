@@ -12,7 +12,7 @@ const MINIGAMES := {
 
 # The search scene is made by the other team member. Set its path here
 # when that scene is added to the project.
-var search_scene_path := ""
+var search_scene_path := "res://scenes/minigames/hidden_object/HiddenObject.tscn"
 
 var story_step: int = StoryStep.SHOP
 var high_scores: Dictionary = {"match3": 0, "catio": 0}

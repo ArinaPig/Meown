@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://fj3d4eb6v7e1"]
+
+[ext_resource type="Script" uid="uid://826bsal6xjbl" path="res://scenes/minigames/catio/Cat.gd" id="1_uwtl0"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_r0adu"]
+radius = 20.0
+
+[node name="Cat" type="Area2D" unique_id=825145515]
+script = ExtResource("1_uwtl0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1536961472]
+shape = SubResource("CircleShape2D_r0adu")

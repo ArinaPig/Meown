@@ -3,3 +3,10 @@
 *.tmp
 /android/
 export_presets.cfg/android/
+
+# Aurora OS packaging outputs
+/build/
+/out/
+/RPMS/
+/.version
+/tmp/

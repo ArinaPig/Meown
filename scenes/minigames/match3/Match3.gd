@@ -595,17 +595,27 @@ func _finish_game(won: bool) -> void:
 	result_text.add_theme_color_override("font_color", CAFE_MUTED)
 	content.add_child(result_text)
 
-	var retry_button := Button.new()
-	retry_button.text = "Попробовать ещё"
-	retry_button.custom_minimum_size = Vector2(0, 48)
-	retry_button.pressed.connect(_restart_from_result)
-	content.add_child(retry_button)
+	var next_button := Button.new()
+	next_button.custom_minimum_size = Vector2(0, 48)
+	if won:
+		next_button.text = "Продолжить"
+		next_button.pressed.connect(_continue_to_next_level)
+	else:
+		next_button.text = "Попробовать ещё"
+		next_button.pressed.connect(_restart_from_result)
+	content.add_child(next_button)
 
 	var map_button := Button.new()
 	map_button.text = "На карту"
 	map_button.custom_minimum_size = Vector2(0, 44)
 	map_button.pressed.connect(_return_to_map)
 	content.add_child(map_button)
+
+func _continue_to_next_level() -> void:
+	# Следующий этап истории после магазина — поиск предметов в домике.
+	if not GameState.start_minigame("search"):
+		push_error("Не удалось открыть следующий уровень: сцена поиска предметов недоступна.")
+
 
 func _restart_from_result() -> void:
 	if is_instance_valid(result_overlay):

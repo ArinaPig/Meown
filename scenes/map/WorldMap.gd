@@ -342,7 +342,7 @@ func _animate_button(button: Button, target_scale: Vector2, duration: float) -> 
 	_button_tweens[button_id] = tween
 	tween.set_trans(Tween.TRANS_BACK)
 	tween.set_ease(Tween.EASE_OUT)
-	tween.tween_property(button, "scale", target_scale, duration)
+	tween.tween_property(button, "scale", target_scale * _map_scale, duration)
 
 func _create_transition_overlay() -> void:
 	transition_overlay = ColorRect.new()

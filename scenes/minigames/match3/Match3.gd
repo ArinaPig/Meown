@@ -168,12 +168,6 @@ func _build_interface() -> void:
 	board_panel.add_theme_stylebox_override("panel", board_style)
 	ui_grid.add_child(board_panel)
 
-	landscape_balance_spacer = Control.new()
-	landscape_balance_spacer.custom_minimum_size = Vector2.ZERO
-	landscape_balance_spacer.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	landscape_balance_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ui_grid.add_child(landscape_balance_spacer)
-
 	grid = GridContainer.new()
 	grid.columns = BOARD_SIZE
 	grid.add_theme_constant_override("h_separation", 3)
@@ -228,16 +222,14 @@ func _update_responsive_layout() -> void:
 	var landscape_tablet := viewport_size.x > viewport_size.y and viewport_size.x >= 700.0
 	var large_portrait_tablet := viewport_size.y >= 1000.0 and viewport_size.x >= 650.0
 	ui_grid.vertical = not landscape_tablet
-	ui_grid.add_theme_constant_override("separation", 22 if landscape_tablet else (18 if large_portrait_tablet else 14))
+	ui_grid.add_theme_constant_override("separation", 28 if landscape_tablet else (18 if large_portrait_tablet else 14))
 	ui_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER if landscape_tablet else Control.SIZE_EXPAND_FILL
 	ui_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	landscape_balance_spacer.visible = landscape_tablet
 
-	var info_width := 240.0 if landscape_tablet else 0.0
+	var info_width := 300.0 if landscape_tablet else 0.0
 	info_column.custom_minimum_size = Vector2(info_width, 0.0)
 	info_column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN if landscape_tablet else Control.SIZE_EXPAND_FILL
 	info_column.add_theme_constant_override("separation", 8 if landscape_tablet else (14 if large_portrait_tablet else 12))
-	landscape_balance_spacer.custom_minimum_size = Vector2(info_width, 0.0) if landscape_tablet else Vector2.ZERO
 	board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	board_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
@@ -248,11 +240,11 @@ func _update_responsive_layout() -> void:
 	var task_size := 17.0 * scale_factor
 	var small_size := 15.0 * scale_factor
 	if landscape_tablet:
-		title_size = 25.0
-		subtitle_size = 16.0
-		score_size = 18.0
-		task_size = 16.0
-		small_size = 15.0
+		title_size = 29.0
+		subtitle_size = 19.0
+		score_size = 21.0
+		task_size = 18.0
+		small_size = 17.0
 	elif large_portrait_tablet:
 		title_size = 42.0
 		subtitle_size = 25.0
@@ -272,7 +264,7 @@ func _update_responsive_layout() -> void:
 
 	var available_board_size: float
 	if landscape_tablet:
-		available_board_size = minf(viewport_size.y - 320.0, viewport_size.x - info_width * 2.0 - 100.0)
+		available_board_size = minf(viewport_size.y - 90.0, viewport_size.x - info_width - 80.0)
 	else:
 		var horizontal_margin := 20.0 if viewport_size.x < 420.0 else 36.0
 		var reserved_vertical := 360.0 if viewport_size.y < 1000.0 else 500.0

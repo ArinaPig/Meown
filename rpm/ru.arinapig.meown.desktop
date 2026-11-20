@@ -7,6 +7,14 @@ Name=Meown
 Comment=Pixel-art cat adventure
 Categories=Game;
 
+
+[X-Aurora-Capabilities]
+OrientationBehavior=Lazy
+
+[X-Aurora-Application]
+Orientation=All
+SmallScreenOrientation=Portrait
+
 [X-Application]
 Permissions=Audio
 OrganizationName=ru.arinapig

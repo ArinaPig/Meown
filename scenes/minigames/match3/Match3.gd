@@ -230,6 +230,10 @@ func _build_interface() -> void:
 	main_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	ui_grid.add_child(main_row)
 	main_row.add_child(left_column)
+	# board_panel ранее был добавлен прямо в ui_grid.
+	# Переносим его в main_row, чтобы он действительно оказался между колонками.
+	if board_panel.get_parent() == ui_grid:
+		ui_grid.remove_child(board_panel)
 	main_row.add_child(board_panel)
 	main_row.add_child(right_column)
 

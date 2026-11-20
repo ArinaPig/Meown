@@ -49,9 +49,16 @@ var task_label: Label
 var moves_label: Label
 var hint_label: Label
 var grid: GridContainer
+var ui_grid: GridContainer
+var info_column: VBoxContainer
+var board_panel: PanelContainer
+var title_label: Label
+var subtitle_label: Label
 
 func _ready() -> void:
 	_build_interface()
+	get_viewport().size_changed.connect(_update_responsive_layout)
+	call_deferred("_update_responsive_layout")
 	_new_game()
 
 func _build_interface() -> void:
@@ -69,23 +76,34 @@ func _build_interface() -> void:
 	margins.add_theme_constant_override("margin_bottom", 24)
 	add_child(margins)
 
-	var layout := VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 12)
-	margins.add_child(layout)
+	ui_grid = GridContainer.new()
+	ui_grid.columns = 1
+	ui_grid.add_theme_constant_override("h_separation", 18)
+	ui_grid.add_theme_constant_override("v_separation", 10)
+	ui_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ui_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margins.add_child(ui_grid)
 
-	var title := Label.new()
-	title.text = "Магазинчик для вечеринки"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", CAFE_BROWN)
-	layout.add_child(title)
+	info_column = VBoxContainer.new()
+	info_column.add_theme_constant_override("separation", 9)
+	info_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ui_grid.add_child(info_column)
 
-	var subtitle := Label.new()
-	subtitle.text = "Собираем угощения к празднику"
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_font_size_override("font_size", 18)
-	subtitle.add_theme_color_override("font_color", CAFE_MUTED)
-	layout.add_child(subtitle)
+	title_label = Label.new()
+	title_label.text = "Магазинчик для вечеринки"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_label.add_theme_font_size_override("font_size", 30)
+	title_label.add_theme_color_override("font_color", CAFE_BROWN)
+	info_column.add_child(title_label)
+
+	subtitle_label = Label.new()
+	subtitle_label.text = "Собираем угощения к празднику"
+	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	subtitle_label.add_theme_font_size_override("font_size", 18)
+	subtitle_label.add_theme_color_override("font_color", CAFE_MUTED)
+	info_column.add_child(subtitle_label)
 
 	var score_panel := PanelContainer.new()
 	var score_style := StyleBoxFlat.new()
@@ -94,7 +112,7 @@ func _build_interface() -> void:
 	score_style.set_border_width_all(2)
 	score_style.set_corner_radius_all(12)
 	score_panel.add_theme_stylebox_override("panel", score_style)
-	layout.add_child(score_panel)
+	info_column.add_child(score_panel)
 
 	score_label = Label.new()
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -109,7 +127,7 @@ func _build_interface() -> void:
 	task_style.set_border_width_all(2)
 	task_style.set_corner_radius_all(12)
 	task_panel.add_theme_stylebox_override("panel", task_style)
-	layout.add_child(task_panel)
+	info_column.add_child(task_panel)
 
 	var task_layout := VBoxContainer.new()
 	task_layout.add_theme_constant_override("separation", 3)
@@ -132,9 +150,9 @@ func _build_interface() -> void:
 	hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint_label.add_theme_font_size_override("font_size", 15)
 	hint_label.add_theme_color_override("font_color", CAFE_BROWN)
-	layout.add_child(hint_label)
+	info_column.add_child(hint_label)
 
-	var board_panel := PanelContainer.new()
+	board_panel = PanelContainer.new()
 	board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var board_style := StyleBoxFlat.new()
 	board_style.bg_color = CAFE_PANEL
@@ -146,7 +164,7 @@ func _build_interface() -> void:
 	board_style.content_margin_top = 6
 	board_style.content_margin_bottom = 6
 	board_panel.add_theme_stylebox_override("panel", board_style)
-	layout.add_child(board_panel)
+	ui_grid.add_child(board_panel)
 
 	grid = GridContainer.new()
 	grid.columns = BOARD_SIZE
@@ -158,7 +176,7 @@ func _build_interface() -> void:
 		var row_buttons: Array = []
 		for x in range(BOARD_SIZE):
 			var tile := Button.new()
-			tile.custom_minimum_size = Vector2(55, 55)
+			tile.custom_minimum_size = Vector2(52, 52)
 			tile.expand_icon = true
 			tile.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			tile.pivot_offset = tile.custom_minimum_size / 2.0
@@ -180,7 +198,7 @@ func _build_interface() -> void:
 	restart.add_theme_stylebox_override("hover", restart_style)
 	restart.add_theme_stylebox_override("pressed", restart_style)
 	restart.pressed.connect(_new_game)
-	layout.add_child(restart)
+	info_column.add_child(restart)
 
 	var map_button := Button.new()
 	map_button.text = "На карту"
@@ -188,7 +206,57 @@ func _build_interface() -> void:
 	map_button.add_theme_font_size_override("font_size", 16)
 	map_button.add_theme_color_override("font_color", CAFE_BROWN)
 	map_button.pressed.connect(_return_to_map)
-	layout.add_child(map_button)
+	info_column.add_child(map_button)
+
+
+func _update_responsive_layout() -> void:
+	if not is_instance_valid(ui_grid) or not is_instance_valid(board_panel):
+		return
+
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+
+	# Телефоны остаются в вертикальной компоновке. На широком экране
+	# планшета информационная колонка располагается рядом с игровым полем.
+	var landscape_tablet := viewport_size.x > viewport_size.y and viewport_size.x >= 700.0
+	ui_grid.columns = 2 if landscape_tablet else 1
+	ui_grid.add_theme_constant_override("h_separation", 20 if landscape_tablet else 10)
+	ui_grid.add_theme_constant_override("v_separation", 10)
+
+	if landscape_tablet:
+		info_column.custom_minimum_size = Vector2(250.0, 0.0)
+		board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		board_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		title_label.add_theme_font_size_override("font_size", 24)
+		subtitle_label.add_theme_font_size_override("font_size", 15)
+		score_label.add_theme_font_size_override("font_size", 17)
+		task_label.add_theme_font_size_override("font_size", 15)
+		moves_label.add_theme_font_size_override("font_size", 14)
+		hint_label.add_theme_font_size_override("font_size", 14)
+	else:
+		info_column.custom_minimum_size = Vector2.ZERO
+		board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		board_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		title_label.add_theme_font_size_override("font_size", 30)
+		subtitle_label.add_theme_font_size_override("font_size", 18)
+		score_label.add_theme_font_size_override("font_size", 20)
+		task_label.add_theme_font_size_override("font_size", 17)
+		moves_label.add_theme_font_size_override("font_size", 15)
+		hint_label.add_theme_font_size_override("font_size", 15)
+
+	var available_board_size: float
+	if landscape_tablet:
+		available_board_size = minf(viewport_size.y - 36.0, viewport_size.x - 320.0)
+	else:
+		# Оставляем место для заголовка, задания и кнопок под игровым полем.
+		available_board_size = minf(viewport_size.x - 36.0, viewport_size.y - 355.0)
+
+	var tile_size := clampf(floorf((available_board_size - 24.0 - (BOARD_SIZE - 1) * 3.0) / BOARD_SIZE), 30.0, 76.0)
+	for row in tile_buttons:
+		for tile in row:
+			tile.custom_minimum_size = Vector2.ONE * tile_size
+			tile.pivot_offset = Vector2.ONE * tile_size * 0.5
 
 func _new_game() -> void:
 	score = 0
@@ -411,7 +479,7 @@ func _resolve_board() -> void:
 	if not _has_possible_move():
 		_shuffle_board()
 
-	hint_label.text = "Отлично! Продолжай выполнять заказ"
+	hint_label.text = "Отлично! Продолжай собирать угощения!"
 	busy = false
 
 func _apply_gravity() -> void:

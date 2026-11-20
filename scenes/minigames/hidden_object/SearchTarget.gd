@@ -10,10 +10,15 @@ func _input_event(_viewport, event, _shape_idx):
 	if found:
 		return
 
+	var pressed := false
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			found = true
-			item_found.emit()
-			print("Предмет найден!")
-			hide()
-			set_process_input(false)
+		pressed = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+	elif event is InputEventScreenTouch:
+		pressed = event.pressed
+
+	if pressed:
+		found = true
+		item_found.emit()
+		print("Предмет найден!")
+		hide()
+		input_pickable = false

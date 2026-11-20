@@ -272,7 +272,7 @@ func _update_responsive_layout() -> void:
 
 	var available_board_size: float
 	if landscape_tablet:
-		available_board_size = minf(viewport_size.y - 230.0, viewport_size.x - info_width * 2.0 - 100.0)
+		available_board_size = minf(viewport_size.y - 320.0, viewport_size.x - info_width * 2.0 - 100.0)
 	else:
 		var horizontal_margin := 20.0 if viewport_size.x < 420.0 else 36.0
 		var reserved_vertical := 360.0 if viewport_size.y < 1000.0 else 500.0

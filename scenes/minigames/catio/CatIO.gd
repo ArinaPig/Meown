@@ -154,40 +154,45 @@ func _update_hud_layout() -> void:
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
 
-	# HUD controls stay attached to viewport edges instead of using fixed
-	# portrait-only Y coordinates. The playfield and camera remain world-space.
-	time_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	var compact_hud := viewport_size.x < 420.0
-	var hud_width := minf(174.0, viewport_size.x * 0.48)
+	var tablet_hud := viewport_size.x >= 700.0 or viewport_size.y >= 1000.0
+	var hud_font := 13 if compact_hud else (20 if tablet_hud else 16)
+	var hud_width := minf(240.0 if tablet_hud else 174.0, viewport_size.x * 0.44)
 	for label in [time_label, mass_label]:
-		label.add_theme_font_size_override("font_size", 13 if compact_hud else 15)
+		label.add_theme_font_size_override("font_size", hud_font)
 
 	time_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	time_label.offset_left = 16
-	time_label.offset_top = 16
-	time_label.offset_right = 16.0 + hud_width
-	time_label.offset_bottom = 48
+	time_label.offset_left = 20 if tablet_hud else 16
+	time_label.offset_top = 18 if tablet_hud else 16
+	time_label.offset_right = time_label.offset_left + hud_width
+	time_label.offset_bottom = 58 if tablet_hud else 48
 
 	mass_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	mass_label.offset_left = -hud_width
-	mass_label.offset_top = 16
-	mass_label.offset_right = -16
-	mass_label.offset_bottom = 48
+	mass_label.offset_top = 18 if tablet_hud else 16
+	mass_label.offset_right = -20 if tablet_hud else -16
+	mass_label.offset_bottom = 58 if tablet_hud else 48
 
-	var leaderboard := $UI/UIRoot.get_node_or_null("Leaderboard") as Control
+	var leaderboard := $UI/UIRoot.get_node_or_null("Leaderboard") as PanelContainer
 	if leaderboard != null:
+		var panel_width := 210.0 if tablet_hud else 150.0
+		var panel_height := 160.0 if tablet_hud else 132.0
 		leaderboard.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-		leaderboard.offset_left = -166
-		leaderboard.offset_top = 58
-		leaderboard.offset_right = -16
-		leaderboard.offset_bottom = 190
+		leaderboard.offset_left = -panel_width - (20.0 if tablet_hud else 16.0)
+		leaderboard.offset_top = 72 if tablet_hud else 58
+		leaderboard.offset_right = -20 if tablet_hud else -16
+		leaderboard.offset_bottom = leaderboard.offset_top + panel_height
+		leaderboard.custom_minimum_size = Vector2(panel_width, 0)
+		if is_instance_valid(leaderboard_label):
+			leaderboard_label.add_theme_font_size_override("font_size", 15 if tablet_hud else 11)
 
 	if is_instance_valid(map_button):
 		map_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-		map_button.offset_left = 16
-		map_button.offset_top = -58
-		map_button.offset_right = 134
-		map_button.offset_bottom = -16
+		map_button.offset_left = 20 if tablet_hud else 16
+		map_button.offset_top = -70 if tablet_hud else -58
+		map_button.offset_right = 170 if tablet_hud else 134
+		map_button.offset_bottom = -18 if tablet_hud else -16
+		map_button.add_theme_font_size_override("font_size", 17 if tablet_hud else 13)
 
 func _minimum_arena_zoom() -> float:
 	var viewport_size := get_viewport_rect().size
@@ -218,7 +223,9 @@ func _show_game_over(final_mass: int) -> void:
 	overlay.add_child(center)
 
 	game_over_panel = PanelContainer.new()
-	game_over_panel.custom_minimum_size = Vector2(minf(372.0, get_viewport_rect().size.x - 32.0), 250.0)
+	var viewport_size := get_viewport_rect().size
+	var tablet_ui := viewport_size.x >= 700.0 or viewport_size.y >= 1000.0
+	game_over_panel.custom_minimum_size = Vector2(minf(520.0 if tablet_ui else 420.0, viewport_size.x - 40.0), 300.0 if tablet_ui else 260.0)
 	game_over_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	center.add_child(game_over_panel)
 	var panel_style := StyleBoxFlat.new()
@@ -236,29 +243,29 @@ func _show_game_over(final_mass: int) -> void:
 	var title := Label.new()
 	title.text = "Ой! Тебя съели..."
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_font_size_override("font_size", 32 if tablet_ui else 26)
 	title.add_theme_color_override("font_color", CAFE_BROWN)
 	content.add_child(title)
 
 	var result := Label.new()
 	result.text = "Твоя масса: %d\nРекорд: %d" % [final_mass, int(GameState.high_scores.get("catio", 0))]
 	result.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	result.add_theme_font_size_override("font_size", 17)
+	result.add_theme_font_size_override("font_size", 23 if tablet_ui else 18)
 	result.add_theme_color_override("font_color", CAFE_MUTED)
 	content.add_child(result)
 
 	var retry := Button.new()
 	retry.text = "ИГРАТЬ ЕЩЁ"
-	retry.custom_minimum_size = Vector2(0, 46)
-	retry.add_theme_font_size_override("font_size", 16)
+	retry.custom_minimum_size = Vector2(0, 58 if tablet_ui else 48)
+	retry.add_theme_font_size_override("font_size", 20 if tablet_ui else 16)
 	retry.add_theme_color_override("font_color", CAFE_BROWN)
 	retry.pressed.connect(func() -> void: get_tree().reload_current_scene())
 	content.add_child(retry)
 
 	var map := Button.new()
 	map.text = "НА КАРТУ"
-	map.custom_minimum_size = Vector2(0, 42)
-	map.add_theme_font_size_override("font_size", 15)
+	map.custom_minimum_size = Vector2(0, 54 if tablet_ui else 44)
+	map.add_theme_font_size_override("font_size", 19 if tablet_ui else 15)
 	map.add_theme_color_override("font_color", CAFE_BROWN)
 	map.pressed.connect(_return_to_map)
 	content.add_child(map)

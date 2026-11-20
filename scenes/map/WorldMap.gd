@@ -22,7 +22,10 @@ var _button_tweens: Dictionary = {}
 var _animation_time: float = 0.0
 var _map_scale: float = 1.0
 var _map_origin: Vector2 = Vector2.ZERO
-const DESIGN_SIZE := Vector2(480.0, 800.0)
+const PORTRAIT_DESIGN_SIZE := Vector2(480.0, 800.0)
+const LANDSCAPE_DESIGN_SIZE := Vector2(1280.0, 800.0)
+var _map_landscape := false
+var _map_design_size := PORTRAIT_DESIGN_SIZE
 
 func _process(delta: float) -> void:
 	_animation_time += delta
@@ -51,6 +54,9 @@ func _draw() -> void:
 	# Keep the pixel-art map in its 480x800 design space. The complete
 	# composition is uniformly scaled and centered on every aspect ratio.
 	draw_set_transform(_map_origin, 0.0, Vector2.ONE * _map_scale)
+	if _map_landscape:
+		_draw_landscape_map()
+		return
 
 	# Soft grass patches and tiny pixel flowers.
 	for patch in [Rect2(12, 155, 105, 82), Rect2(330, 180, 130, 88), Rect2(18, 430, 92, 95), Rect2(350, 535, 112, 110)]:
@@ -89,6 +95,31 @@ func _draw() -> void:
 	_draw_resident_cat(Vector2(285, 700), Color("#E58E82"), Color("#FFF0D8"), 2.6)
 	_draw_pawprints(Vector2(205, 390), 4, Vector2(13, 15))
 	_draw_pawprints(Vector2(260, 505), 3, Vector2(-12, 13))
+
+func _draw_landscape_map() -> void:
+	# Wide-tablet composition: all three destinations form a clear horizontal route.
+	for patch in [Rect2(75, 190, 250, 130), Rect2(510, 175, 250, 145), Rect2(950, 195, 250, 130)]:
+		draw_rect(patch, Color("#F3C4A9"))
+	for point in [Vector2(115, 225), Vector2(385, 250), Vector2(560, 215), Vector2(850, 250), Vector2(1110, 220), Vector2(1200, 590), Vector2(80, 610)]:
+		_draw_flower(point)
+	draw_line(Vector2(300, 390), Vector2(640, 390), Color("#E9B88F"), 34.0, true)
+	draw_line(Vector2(640, 390), Vector2(980, 390), Color("#E9B88F"), 34.0, true)
+	draw_line(Vector2(300, 390), Vector2(640, 390), Color("#F7DCC0"), 25.0, true)
+	draw_line(Vector2(640, 390), Vector2(980, 390), Color("#F7DCC0"), 25.0, true)
+	_draw_shop(Vector2(300, 355))
+	_draw_house(Vector2(640, 355))
+	_draw_party(Vector2(980, 355))
+	_draw_tree(Vector2(105, 420))
+	_draw_tree(Vector2(1175, 420))
+	_draw_tree(Vector2(470, 540))
+	_draw_tree(Vector2(810, 540))
+	_draw_bush(Vector2(430, 315))
+	_draw_bush(Vector2(850, 315))
+	_draw_lamp(Vector2(470, 390))
+	_draw_lamp(Vector2(810, 390))
+	_draw_resident_cat(Vector2(300, 270), Color("#F2B36F"), Color("#FFF0D8"), 0.0)
+	_draw_resident_cat(Vector2(640, 270), Color("#A9C8E3"), Color("#FFF0D8"), 1.3)
+	_draw_resident_cat(Vector2(980, 270), Color("#E58E82"), Color("#FFF0D8"), 2.6)
 
 func _draw_shop(center: Vector2) -> void:
 	# Awning, shop body, door and display window.
@@ -265,37 +296,56 @@ func _update_responsive_layout() -> void:
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
 
-	# Uniform scaling preserves pixel-art proportions and prevents the map
-	# from being stretched or cropped on tablets and unusual screen ratios.
-	_map_scale = minf(viewport_size.x / DESIGN_SIZE.x, viewport_size.y / DESIGN_SIZE.y)
+	_map_landscape = viewport_size.x > viewport_size.y and viewport_size.x >= 700.0
+	_map_design_size = LANDSCAPE_DESIGN_SIZE if _map_landscape else PORTRAIT_DESIGN_SIZE
+	_map_scale = minf(viewport_size.x / _map_design_size.x, viewport_size.y / _map_design_size.y)
 	_map_scale = maxf(_map_scale, 0.1)
-	_map_origin = (viewport_size - DESIGN_SIZE * _map_scale) * 0.5
+	_map_origin = (viewport_size - _map_design_size * _map_scale) * 0.5
 
 	if is_instance_valid(map_asset_layer):
 		map_asset_layer.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		map_asset_layer.position = _map_origin
-		map_asset_layer.size = DESIGN_SIZE
+		map_asset_layer.size = _map_design_size
 		map_asset_layer.scale = Vector2.ONE * _map_scale
 
 	var title := get_node_or_null("MapTitle") as Label
 	if title != null:
-		_layout_map_control(title, Rect2(0, 20, 480, 48))
+		_layout_map_control(title, Rect2(0, 18, _map_design_size.x, 54 if _map_landscape else 48))
+		title.add_theme_font_size_override("font_size", 42 if _map_landscape else 34)
 
 	var subtitle := get_node_or_null("MapSubtitle") as Label
 	if subtitle != null:
-		_layout_map_control(subtitle, Rect2(20, 66, 440, 28))
+		_layout_map_control(subtitle, Rect2(24, 70, _map_design_size.x - 48, 32))
+		subtitle.add_theme_font_size_override("font_size", 20 if _map_landscape else 17)
 
-	if is_instance_valid(shop_button):
-		_layout_map_control(shop_button, Rect2(48, 350, 154, 62))
-	if is_instance_valid(home_button):
-		_layout_map_control(home_button, Rect2(263, 485, 174, 62))
-	if is_instance_valid(party_button):
-		_layout_map_control(party_button, Rect2(66, 680, 178, 58))
+	if _map_landscape:
+		if is_instance_valid(shop_button):
+			_layout_map_control(shop_button, Rect2(170, 510, 260, 76))
+		if is_instance_valid(home_button):
+			_layout_map_control(home_button, Rect2(510, 510, 260, 76))
+		if is_instance_valid(party_button):
+			_layout_map_control(party_button, Rect2(850, 510, 260, 76))
+		if is_instance_valid(status_label):
+			_layout_map_control(status_label, Rect2(30, 730, 1220, 42))
+	else:
+		if is_instance_valid(shop_button):
+			_layout_map_control(shop_button, Rect2(48, 350, 154, 62))
+		if is_instance_valid(home_button):
+			_layout_map_control(home_button, Rect2(263, 485, 174, 62))
+		if is_instance_valid(party_button):
+			_layout_map_control(party_button, Rect2(66, 680, 178, 58))
+		if is_instance_valid(status_label):
+			_layout_map_control(status_label, Rect2(20, 750, 440, 34))
+
+	for button in [shop_button, home_button, party_button]:
+		if is_instance_valid(button):
+			button.add_theme_font_size_override("font_size", 22 if _map_landscape else 18)
 	if is_instance_valid(status_label):
-		_layout_map_control(status_label, Rect2(20, 750, 440, 34))
+		status_label.add_theme_font_size_override("font_size", 18 if _map_landscape else 15)
 
 	if is_instance_valid(transition_overlay):
 		transition_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	queue_redraw()
 
 func _layout_map_control(control: Control, design_rect: Rect2) -> void:
 	control.position = _map_origin + design_rect.position * _map_scale

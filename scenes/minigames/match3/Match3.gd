@@ -217,42 +217,57 @@ func _update_responsive_layout() -> void:
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
 
-	# Телефоны остаются в вертикальной компоновке. На широком экране
-	# планшета информационная колонка располагается рядом с игровым полем.
 	var landscape_tablet := viewport_size.x > viewport_size.y and viewport_size.x >= 700.0
+	var large_portrait_tablet := viewport_size.y >= 1000.0 and viewport_size.x >= 650.0
 	ui_grid.columns = 2 if landscape_tablet else 1
-	ui_grid.add_theme_constant_override("h_separation", 20 if landscape_tablet else 10)
-	ui_grid.add_theme_constant_override("v_separation", 10)
+	ui_grid.add_theme_constant_override("h_separation", 28 if landscape_tablet else 10)
+	ui_grid.add_theme_constant_override("v_separation", 14 if large_portrait_tablet else 10)
+	ui_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ui_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
+	var info_width := 350.0 if landscape_tablet else 0.0
+	info_column.custom_minimum_size = Vector2(info_width, 0.0)
+	info_column.add_theme_constant_override("separation", 14 if viewport_size.x >= 650.0 else 9)
+	board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	board_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+	var scale_factor := clampf(minf(viewport_size.x / 480.0, viewport_size.y / 800.0), 0.78, 1.35)
+	var title_size := 30.0 * scale_factor
+	var subtitle_size := 18.0 * scale_factor
+	var score_size := 20.0 * scale_factor
+	var task_size := 17.0 * scale_factor
+	var small_size := 15.0 * scale_factor
 	if landscape_tablet:
-		info_column.custom_minimum_size = Vector2(250.0, 0.0)
-		board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		board_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		title_label.add_theme_font_size_override("font_size", 24)
-		subtitle_label.add_theme_font_size_override("font_size", 15)
-		score_label.add_theme_font_size_override("font_size", 17)
-		task_label.add_theme_font_size_override("font_size", 15)
-		moves_label.add_theme_font_size_override("font_size", 14)
-		hint_label.add_theme_font_size_override("font_size", 14)
-	else:
-		info_column.custom_minimum_size = Vector2.ZERO
-		board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		board_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		title_label.add_theme_font_size_override("font_size", 30)
-		subtitle_label.add_theme_font_size_override("font_size", 18)
-		score_label.add_theme_font_size_override("font_size", 20)
-		task_label.add_theme_font_size_override("font_size", 17)
-		moves_label.add_theme_font_size_override("font_size", 15)
-		hint_label.add_theme_font_size_override("font_size", 15)
+		title_size = 34.0
+		subtitle_size = 21.0
+		score_size = 23.0
+		task_size = 20.0
+		small_size = 18.0
+	elif large_portrait_tablet:
+		title_size = 38.0
+		subtitle_size = 23.0
+		score_size = 25.0
+		task_size = 21.0
+		small_size = 19.0
+
+	title_label.add_theme_font_size_override("font_size", roundi(title_size))
+	subtitle_label.add_theme_font_size_override("font_size", roundi(subtitle_size))
+	score_label.add_theme_font_size_override("font_size", roundi(score_size))
+	task_label.add_theme_font_size_override("font_size", roundi(task_size))
+	moves_label.add_theme_font_size_override("font_size", roundi(small_size - 1.0))
+	hint_label.add_theme_font_size_override("font_size", roundi(small_size))
+	for child in info_column.get_children():
+		if child is Button:
+			(child as Button).add_theme_font_size_override("font_size", roundi(small_size + 1.0))
 
 	var available_board_size: float
 	if landscape_tablet:
-		available_board_size = minf(viewport_size.y - 36.0, viewport_size.x - 320.0)
+		available_board_size = minf(viewport_size.y - 56.0, viewport_size.x - info_width - 100.0)
 	else:
-		# Оставляем место для заголовка, задания и кнопок под игровым полем.
-		available_board_size = minf(viewport_size.x - 36.0, viewport_size.y - 390.0)
+		var reserved_vertical := 390.0 if viewport_size.y < 1000.0 else 500.0
+		available_board_size = minf(viewport_size.x - 36.0, viewport_size.y - reserved_vertical)
 
-	var tile_size := clampf(floorf((available_board_size - 24.0 - (BOARD_SIZE - 1) * 3.0) / BOARD_SIZE), 30.0, 76.0)
+	var tile_size := clampf(floorf((available_board_size - 24.0 - (BOARD_SIZE - 1) * 3.0) / BOARD_SIZE), 30.0, 96.0)
 	for row in tile_buttons:
 		for tile in row:
 			tile.custom_minimum_size = Vector2.ONE * tile_size

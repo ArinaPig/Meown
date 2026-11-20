@@ -250,7 +250,7 @@ func _update_responsive_layout() -> void:
 		available_board_size = minf(viewport_size.y - 36.0, viewport_size.x - 320.0)
 	else:
 		# Оставляем место для заголовка, задания и кнопок под игровым полем.
-		available_board_size = minf(viewport_size.x - 36.0, viewport_size.y - 355.0)
+		available_board_size = minf(viewport_size.x - 36.0, viewport_size.y - 390.0)
 
 	var tile_size := clampf(floorf((available_board_size - 24.0 - (BOARD_SIZE - 1) * 3.0) / BOARD_SIZE), 30.0, 76.0)
 	for row in tile_buttons:

@@ -52,7 +52,9 @@ var grid: GridContainer
 var ui_grid: BoxContainer
 var info_column: VBoxContainer
 var board_panel: PanelContainer
-var landscape_balance_spacer: Control
+var footer_row: BoxContainer
+var board_top_spacer: Control
+var board_bottom_spacer: Control
 var title_label: Label
 var subtitle_label: Label
 
@@ -79,9 +81,9 @@ func _build_interface() -> void:
 
 	ui_grid = BoxContainer.new()
 	ui_grid.vertical = true
-	ui_grid.add_theme_constant_override("separation", 14)
+	ui_grid.add_theme_constant_override("separation", 12)
 	ui_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	ui_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ui_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margins.add_child(ui_grid)
 
 	info_column = VBoxContainer.new()
@@ -210,6 +212,26 @@ func _build_interface() -> void:
 	map_button.pressed.connect(_return_to_map)
 	info_column.add_child(map_button)
 
+	# Отделяем заголовок от игровой информации: поле остаётся главным
+	# центральным элементом, а показатели и действия располагаются ниже.
+	footer_row = BoxContainer.new()
+	footer_row.vertical = true
+	footer_row.add_theme_constant_override("separation", 8)
+	footer_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	ui_grid.add_child(footer_row)
+	for child in info_column.get_children().slice(2):
+		info_column.remove_child(child)
+		footer_row.add_child(child)
+
+	board_top_spacer = Control.new()
+	board_top_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	ui_grid.add_child(board_top_spacer)
+	ui_grid.move_child(board_top_spacer, 1)
+	board_bottom_spacer = Control.new()
+	board_bottom_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	ui_grid.add_child(board_bottom_spacer)
+	ui_grid.move_child(board_bottom_spacer, 3)
+
 
 func _update_responsive_layout() -> void:
 	if not is_instance_valid(ui_grid) or not is_instance_valid(board_panel):
@@ -221,29 +243,35 @@ func _update_responsive_layout() -> void:
 
 	var landscape_tablet := viewport_size.x > viewport_size.y and viewport_size.x >= 700.0
 	var large_portrait_tablet := viewport_size.y >= 1000.0 and viewport_size.x >= 650.0
-	ui_grid.vertical = not landscape_tablet
-	ui_grid.add_theme_constant_override("separation", 28 if landscape_tablet else (18 if large_portrait_tablet else 14))
-	ui_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER if landscape_tablet else Control.SIZE_EXPAND_FILL
-	ui_grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
-	var info_width := 300.0 if landscape_tablet else 0.0
-	info_column.custom_minimum_size = Vector2(info_width, 0.0)
-	info_column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN if landscape_tablet else Control.SIZE_EXPAND_FILL
-	info_column.add_theme_constant_override("separation", 8 if landscape_tablet else (14 if large_portrait_tablet else 12))
+	# Одна вертикальная композиция для всех экранов: заголовок сверху,
+	# игровое поле по центру, показатели и кнопки под ним.
+	ui_grid.vertical = true
+	ui_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ui_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	ui_grid.add_theme_constant_override("separation", 10 if landscape_tablet else (18 if large_portrait_tablet else 12))
+	info_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_column.custom_minimum_size = Vector2.ZERO
+	info_column.add_theme_constant_override("separation", 4 if landscape_tablet else 8)
+	footer_row.vertical = not landscape_tablet
+	footer_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER if landscape_tablet else Control.SIZE_EXPAND_FILL
+	footer_row.add_theme_constant_override("separation", 8 if landscape_tablet else 10)
 	board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	board_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	board_top_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL if landscape_tablet else Control.SIZE_SHRINK_BEGIN
+	board_bottom_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL if landscape_tablet else Control.SIZE_SHRINK_BEGIN
 
-	var scale_factor := clampf(minf(viewport_size.x / 400.0, viewport_size.y / 740.0), 0.9, 1.45)
+	var scale_factor := clampf(minf(viewport_size.x / 400.0, viewport_size.y / 740.0), 0.9, 1.55)
 	var title_size := 30.0 * scale_factor
 	var subtitle_size := 18.0 * scale_factor
 	var score_size := 20.0 * scale_factor
 	var task_size := 17.0 * scale_factor
 	var small_size := 15.0 * scale_factor
 	if landscape_tablet:
-		title_size = 29.0
-		subtitle_size = 19.0
-		score_size = 21.0
-		task_size = 18.0
+		title_size = 36.0
+		subtitle_size = 20.0
+		score_size = 22.0
+		task_size = 19.0
 		small_size = 17.0
 	elif large_portrait_tablet:
 		title_size = 42.0
@@ -258,19 +286,20 @@ func _update_responsive_layout() -> void:
 	task_label.add_theme_font_size_override("font_size", roundi(task_size))
 	moves_label.add_theme_font_size_override("font_size", roundi(small_size - 1.0))
 	hint_label.add_theme_font_size_override("font_size", roundi(small_size))
-	for child in info_column.get_children():
+	for child in footer_row.get_children():
 		if child is Button:
 			(child as Button).add_theme_font_size_override("font_size", roundi(small_size + 1.0))
 
 	var available_board_size: float
 	if landscape_tablet:
-		available_board_size = minf(viewport_size.y - 90.0, viewport_size.x - info_width - 80.0)
+		# Оставляем место под верхний заголовок и нижнюю строку статуса.
+		available_board_size = minf(viewport_size.y - 205.0, viewport_size.x - 80.0)
 	else:
 		var horizontal_margin := 20.0 if viewport_size.x < 420.0 else 36.0
-		var reserved_vertical := 360.0 if viewport_size.y < 1000.0 else 500.0
+		var reserved_vertical := 300.0 if viewport_size.y < 1000.0 else 430.0
 		available_board_size = minf(viewport_size.x - horizontal_margin, viewport_size.y - reserved_vertical)
 
-	var tile_size := clampf(floorf((available_board_size - 24.0 - (BOARD_SIZE - 1) * 3.0) / BOARD_SIZE), 30.0, 96.0)
+	var tile_size := clampf(floorf((available_board_size - 24.0 - (BOARD_SIZE - 1) * 3.0) / BOARD_SIZE), 30.0, 104.0)
 	for row in tile_buttons:
 		for tile in row:
 			tile.custom_minimum_size = Vector2.ONE * tile_size

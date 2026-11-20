@@ -20,6 +20,9 @@ var transition_overlay: ColorRect
 var _transitioning: bool = false
 var _button_tweens: Dictionary = {}
 var _animation_time: float = 0.0
+var _map_scale: float = 1.0
+var _map_origin: Vector2 = Vector2.ZERO
+const DESIGN_SIZE := Vector2(480.0, 800.0)
 
 func _process(delta: float) -> void:
 	_animation_time += delta
@@ -33,16 +36,21 @@ func _ready() -> void:
 	add_child(map_asset_layer)
 	_build_interface()
 	_create_transition_overlay()
+	get_viewport().size_changed.connect(_update_responsive_layout)
+	_update_responsive_layout()
 	queue_redraw()
 
 func _draw() -> void:
 	if map_asset_layer != null and bool(map_asset_layer.call("is_asset_pack_active")):
 		return
 
-	var size := get_rect().size
-	if size.x <= 0.0:
-		size = Vector2(480.0, 800.0)
+	var size := get_viewport_rect().size
+	if size.x <= 0.0 or size.y <= 0.0:
+		size = DESIGN_SIZE
 	draw_rect(Rect2(Vector2.ZERO, size), CAFE_BG)
+	# Keep the pixel-art map in its 480x800 design space. The complete
+	# composition is uniformly scaled and centered on every aspect ratio.
+	draw_set_transform(_map_origin, 0.0, Vector2.ONE * _map_scale)
 
 	# Soft grass patches and tiny pixel flowers.
 	for patch in [Rect2(12, 155, 105, 82), Rect2(330, 180, 130, 88), Rect2(18, 430, 92, 95), Rect2(350, 535, 112, 110)]:
@@ -202,6 +210,7 @@ func _draw_flower(point: Vector2) -> void:
 
 func _build_interface() -> void:
 	var title := Label.new()
+	title.name = "MapTitle"
 	title.text = "MEOWN"
 	title.position = Vector2(0, 20)
 	title.size = Vector2(480, 48)
@@ -211,6 +220,7 @@ func _build_interface() -> void:
 	add_child(title)
 
 	var subtitle := Label.new()
+	subtitle.name = "MapSubtitle"
 	subtitle.text = "Подготовь самую уютную вечеринку!"
 	subtitle.position = Vector2(20, 66)
 	subtitle.size = Vector2(440, 28)
@@ -238,6 +248,7 @@ func _build_interface() -> void:
 	add_child(party_button)
 
 	status_label = Label.new()
+	status_label.name = "MapStatus"
 	status_label.position = Vector2(20, 750)
 	status_label.size = Vector2(440, 34)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -247,6 +258,50 @@ func _build_interface() -> void:
 	status_label.add_theme_color_override("font_color", CAFE_BROWN)
 	add_child(status_label)
 	_refresh_locations()
+
+
+func _update_responsive_layout() -> void:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+
+	# Uniform scaling preserves pixel-art proportions and prevents the map
+	# from being stretched or cropped on tablets and unusual screen ratios.
+	_map_scale = minf(viewport_size.x / DESIGN_SIZE.x, viewport_size.y / DESIGN_SIZE.y)
+	_map_scale = maxf(_map_scale, 0.1)
+	_map_origin = (viewport_size - DESIGN_SIZE * _map_scale) * 0.5
+
+	if is_instance_valid(map_asset_layer):
+		map_asset_layer.position = _map_origin
+		map_asset_layer.scale = Vector2.ONE * _map_scale
+
+	var title := get_node_or_null("MapTitle") as Label
+	if title != null:
+		_layout_map_control(title, Rect2(0, 20, 480, 48))
+		title.add_theme_font_size_override("font_size", maxi(20, roundi(34.0 * _map_scale)))
+
+	var subtitle := get_node_or_null("MapSubtitle") as Label
+	if subtitle != null:
+		_layout_map_control(subtitle, Rect2(20, 66, 440, 28))
+		subtitle.add_theme_font_size_override("font_size", maxi(10, roundi(14.0 * _map_scale)))
+
+	if is_instance_valid(shop_button):
+		_layout_map_control(shop_button, Rect2(48, 350, 154, 62))
+	if is_instance_valid(home_button):
+		_layout_map_control(home_button, Rect2(263, 485, 174, 62))
+	if is_instance_valid(party_button):
+		_layout_map_control(party_button, Rect2(66, 680, 178, 58))
+	if is_instance_valid(status_label):
+		_layout_map_control(status_label, Rect2(20, 750, 440, 34))
+		status_label.add_theme_font_size_override("font_size", maxi(10, roundi(13.0 * _map_scale)))
+
+	if is_instance_valid(transition_overlay):
+		transition_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+func _layout_map_control(control: Control, design_rect: Rect2) -> void:
+	control.position = _map_origin + design_rect.position * _map_scale
+	control.size = design_rect.size * _map_scale
+	control.scale = Vector2.ONE * _map_scale
 
 func _make_location_button(caption: String, rect: Rect2) -> Button:
 	var button := Button.new()

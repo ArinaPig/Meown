@@ -49,7 +49,7 @@ func _draw() -> void:
 
 	var size := get_viewport_rect().size
 	if size.x <= 0.0 or size.y <= 0.0:
-		size = DESIGN_SIZE
+		size = PORTRAIT_DESIGN_SIZE
 	draw_rect(Rect2(Vector2.ZERO, size), CAFE_BG)
 	# Keep the pixel-art map in its 480x800 design space. The complete
 	# composition is uniformly scaled and centered on every aspect ratio.

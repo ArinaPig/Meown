@@ -272,18 +272,18 @@ func _update_responsive_layout() -> void:
 	_map_origin = (viewport_size - DESIGN_SIZE * _map_scale) * 0.5
 
 	if is_instance_valid(map_asset_layer):
+		map_asset_layer.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		map_asset_layer.position = _map_origin
+		map_asset_layer.size = DESIGN_SIZE
 		map_asset_layer.scale = Vector2.ONE * _map_scale
 
 	var title := get_node_or_null("MapTitle") as Label
 	if title != null:
 		_layout_map_control(title, Rect2(0, 20, 480, 48))
-		title.add_theme_font_size_override("font_size", maxi(20, roundi(34.0 * _map_scale)))
 
 	var subtitle := get_node_or_null("MapSubtitle") as Label
 	if subtitle != null:
 		_layout_map_control(subtitle, Rect2(20, 66, 440, 28))
-		subtitle.add_theme_font_size_override("font_size", maxi(10, roundi(14.0 * _map_scale)))
 
 	if is_instance_valid(shop_button):
 		_layout_map_control(shop_button, Rect2(48, 350, 154, 62))
@@ -293,14 +293,13 @@ func _update_responsive_layout() -> void:
 		_layout_map_control(party_button, Rect2(66, 680, 178, 58))
 	if is_instance_valid(status_label):
 		_layout_map_control(status_label, Rect2(20, 750, 440, 34))
-		status_label.add_theme_font_size_override("font_size", maxi(10, roundi(13.0 * _map_scale)))
 
 	if is_instance_valid(transition_overlay):
 		transition_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 func _layout_map_control(control: Control, design_rect: Rect2) -> void:
 	control.position = _map_origin + design_rect.position * _map_scale
-	control.size = design_rect.size * _map_scale
+	control.size = design_rect.size
 	control.scale = Vector2.ONE * _map_scale
 
 func _make_location_button(caption: String, rect: Rect2) -> Button:

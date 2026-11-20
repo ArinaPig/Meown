@@ -26,6 +26,7 @@ var leaderboard_label: Label
 var game_over := false
 var leaderboard_refresh_timer := 0.0
 var game_over_panel: PanelContainer
+var map_button: Button
 
 func _ready() -> void:
 	food_timer.wait_time = 0.30
@@ -42,6 +43,8 @@ func _ready() -> void:
 	camera.limit_bottom = 1000
 	_setup_arena()
 	_setup_hud()
+	get_viewport().size_changed.connect(_update_hud_layout)
+	_update_hud_layout()
 	_spawn_bots()
 	for i in range(90):
 		spawn_food()
@@ -104,7 +107,10 @@ func _setup_hud() -> void:
 	var panel := PanelContainer.new()
 	panel.name = "Leaderboard"
 	panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	panel.position = Vector2(-166, 58)
+	panel.offset_left = -166
+	panel.offset_top = 58
+	panel.offset_right = -16
+	panel.offset_bottom = 190
 	panel.custom_minimum_size = Vector2(150, 0)
 	var style := StyleBoxFlat.new()
 	style.bg_color = CAFE_PANEL
@@ -119,10 +125,13 @@ func _setup_hud() -> void:
 	leaderboard_label.text = "ТОП КОТИКОВ"
 	panel.add_child(leaderboard_label)
 
-	var map_button := Button.new()
+	map_button = Button.new()
 	map_button.text = "НА КАРТУ"
-	map_button.position = Vector2(16, 730)
-	map_button.size = Vector2(118, 42)
+	map_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	map_button.offset_left = 16
+	map_button.offset_top = -58
+	map_button.offset_right = 134
+	map_button.offset_bottom = -16
 	map_button.add_theme_font_size_override("font_size", 13)
 	map_button.add_theme_color_override("font_color", CAFE_BROWN)
 	var map_style := StyleBoxFlat.new()
@@ -136,27 +145,72 @@ func _setup_hud() -> void:
 	map_button.pressed.connect(_return_to_map)
 	$UI/UIRoot.add_child(map_button)
 
+
+func _update_hud_layout() -> void:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+
+	# HUD controls stay attached to viewport edges instead of using fixed
+	# portrait-only Y coordinates. The playfield and camera remain world-space.
+	time_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	time_label.offset_left = 16
+	time_label.offset_top = 16
+	time_label.offset_right = 190
+	time_label.offset_bottom = 48
+
+	mass_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	mass_label.offset_left = -174
+	mass_label.offset_top = 16
+	mass_label.offset_right = -16
+	mass_label.offset_bottom = 48
+
+	var leaderboard := $UI/UIRoot.get_node_or_null("Leaderboard") as Control
+	if leaderboard != null:
+		leaderboard.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		leaderboard.offset_left = -166
+		leaderboard.offset_top = 58
+		leaderboard.offset_right = -16
+		leaderboard.offset_bottom = 190
+
+	if is_instance_valid(map_button):
+		map_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+		map_button.offset_left = 16
+		map_button.offset_top = -58
+		map_button.offset_right = 134
+		map_button.offset_bottom = -16
+
 func _show_game_over(final_mass: int) -> void:
 	if is_instance_valid(game_over_panel):
 		return
-	var overlay := ColorRect.new()
+	var overlay := Control.new()
 	overlay.name = "GameOverOverlay"
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	overlay.color = Color(0.25, 0.13, 0.12, 0.48)
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	$UI/UIRoot.add_child(overlay)
 
+	var shade := ColorRect.new()
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.color = Color(0.25, 0.13, 0.12, 0.48)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.add_child(shade)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.add_theme_constant_override("margin_left", 16)
+	center.add_theme_constant_override("margin_right", 16)
+	overlay.add_child(center)
+
 	game_over_panel = PanelContainer.new()
-	game_over_panel.position = Vector2(54, 270)
-	game_over_panel.size = Vector2(372, 250)
-	game_over_panel.custom_minimum_size = Vector2(372, 250)
+	game_over_panel.custom_minimum_size = Vector2(minf(372.0, get_viewport_rect().size.x - 32.0), 250.0)
+	game_over_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	center.add_child(game_over_panel)
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = CAFE_PANEL
 	panel_style.border_color = CAFE_PINK
 	panel_style.set_border_width_all(4)
 	panel_style.set_corner_radius_all(18)
 	game_over_panel.add_theme_stylebox_override("panel", panel_style)
-	overlay.add_child(game_over_panel)
 
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", 14)

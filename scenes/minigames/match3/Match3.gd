@@ -135,6 +135,7 @@ func _build_interface() -> void:
 
 	task_label = Label.new()
 	task_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	task_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	task_label.add_theme_font_size_override("font_size", 17)
 	task_label.add_theme_color_override("font_color", CAFE_BROWN)
 	task_layout.add_child(task_label)
@@ -148,6 +149,7 @@ func _build_interface() -> void:
 	hint_label = Label.new()
 	hint_label.text = "Выбери две соседние фишки"
 	hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint_label.add_theme_font_size_override("font_size", 15)
 	hint_label.add_theme_color_override("font_color", CAFE_BROWN)
 	info_column.add_child(hint_label)

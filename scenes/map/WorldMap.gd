@@ -261,19 +261,19 @@ func _build_interface() -> void:
 	add_child(subtitle)
 
 	shop_button = _make_location_button("МАГАЗИН\nТри в ряд", Rect2(48, 350, 154, 62))
-	shop_button.tooltip_text = "Магазин: собирай вкусности в игре «Три в ряд»."
+	shop_button.tooltip_text = "Магазин — игра «Три в ряд». "
 	_setup_location_button(shop_button)
 	shop_button.pressed.connect(_open_shop)
 	add_child(shop_button)
 
 	home_button = _make_location_button("ДОМИК\nПоиск предметов", Rect2(263, 485, 174, 62))
-	home_button.tooltip_text = "Домик: помоги котику найти предметы для праздника."
+	home_button.tooltip_text = "Домик — поиск предметов."
 	_setup_location_button(home_button)
 	home_button.pressed.connect(_open_search)
 	add_child(home_button)
 
 	party_button = _make_location_button("ВЕЧЕРИНКА\nCat.io", Rect2(66, 680, 178, 58))
-	party_button.tooltip_text = "Вечеринка: присоединяйся к котикам в Cat.io."
+	party_button.tooltip_text = "Вечеринка — Cat.io."
 	_setup_location_button(party_button)
 	party_button.pressed.connect(_open_party)
 	add_child(party_button)
@@ -350,6 +350,8 @@ func _update_responsive_layout() -> void:
 func _layout_map_control(control: Control, design_rect: Rect2) -> void:
 	control.position = _map_origin + design_rect.position * _map_scale
 	control.size = design_rect.size
+	if control is Button:
+		control.pivot_offset = design_rect.size * 0.5
 	control.scale = Vector2.ONE * _map_scale
 
 func _make_location_button(caption: String, rect: Rect2) -> Button:

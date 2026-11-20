@@ -258,6 +258,15 @@ func _update_responsive_layout() -> void:
 	footer_row.add_theme_constant_override("separation", 8 if landscape_tablet else 10)
 	board_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	board_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if landscape_tablet:
+		# Панели показателей не должны схлопываться в узкие колонки.
+		score_label.get_parent().custom_minimum_size = Vector2(190.0, 64.0)
+		task_label.get_parent().get_parent().custom_minimum_size = Vector2(250.0, 64.0)
+		hint_label.custom_minimum_size = Vector2(190.0, 56.0)
+	else:
+		score_label.get_parent().custom_minimum_size = Vector2.ZERO
+		task_label.get_parent().get_parent().custom_minimum_size = Vector2.ZERO
+		hint_label.custom_minimum_size = Vector2.ZERO
 	board_top_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL if landscape_tablet else Control.SIZE_SHRINK_BEGIN
 	board_bottom_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL if landscape_tablet else Control.SIZE_SHRINK_BEGIN
 
@@ -288,12 +297,19 @@ func _update_responsive_layout() -> void:
 	hint_label.add_theme_font_size_override("font_size", roundi(small_size))
 	for child in footer_row.get_children():
 		if child is Button:
-			(child as Button).add_theme_font_size_override("font_size", roundi(small_size + 1.0))
+			var button := child as Button
+			button.add_theme_font_size_override("font_size", roundi(small_size + 1.0))
+			if landscape_tablet:
+				button.custom_minimum_size = Vector2(150.0 if button.text == "Начать заново" else 120.0, 56.0)
+			else:
+				button.custom_minimum_size = Vector2(0.0, 48.0)
 
 	var available_board_size: float
 	if landscape_tablet:
 		# Оставляем место под верхний заголовок и нижнюю строку статуса.
-		available_board_size = minf(viewport_size.y - 205.0, viewport_size.x - 80.0)
+		# Резервируем место под заголовок и нижнюю панель управления.
+		# Иначе крупное поле вытесняет кнопки за нижнюю границу окна.
+		available_board_size = minf(viewport_size.y - 330.0, viewport_size.x - 80.0)
 	else:
 		var horizontal_margin := 20.0 if viewport_size.x < 420.0 else 36.0
 		var reserved_vertical := 300.0 if viewport_size.y < 1000.0 else 430.0

@@ -299,6 +299,10 @@ func _update_responsive_layout() -> void:
 	_map_landscape = viewport_size.x > viewport_size.y and viewport_size.x >= 700.0
 	_map_design_size = LANDSCAPE_DESIGN_SIZE if _map_landscape else PORTRAIT_DESIGN_SIZE
 	_map_scale = minf(viewport_size.x / _map_design_size.x, viewport_size.y / _map_design_size.y)
+	# On narrow phones, gently zoom the portrait map to use more vertical space.
+	# The small horizontal crop is compensated by keeping interactive controls inside the safe area.
+	if not _map_landscape and viewport_size.x < 420.0:
+		_map_scale *= 1.1
 	_map_scale = maxf(_map_scale, 0.1)
 	_map_origin = (viewport_size - _map_design_size * _map_scale) * 0.5
 
@@ -335,7 +339,7 @@ func _update_responsive_layout() -> void:
 		if is_instance_valid(party_button):
 			_layout_map_control(party_button, Rect2(66, 680, 178, 58))
 		if is_instance_valid(status_label):
-			_layout_map_control(status_label, Rect2(20, 750, 440, 34))
+			_layout_map_control(status_label, Rect2(40 if get_viewport_rect().size.x < 420.0 else 20, 750, 400 if get_viewport_rect().size.x < 420.0 else 440, 34))
 
 	for button in [shop_button, home_button, party_button]:
 		if is_instance_valid(button):

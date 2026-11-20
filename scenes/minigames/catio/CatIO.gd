@@ -71,7 +71,10 @@ func _process(delta: float) -> void:
 		camera.global_position = camera.global_position.lerp(player.global_position, min(delta * 7.0, 1.0))
 	# Keep the cat prominent at the start; zoom out noticeably as its mass grows.
 	var player_mass: float = float(player.get("mass"))
-	var target_zoom: float = clampf(1.30 - (player_mass / 1500.0), 0.50, 1.30)
+	# Не позволяем камере показать область за пределами квадратной арены.
+	# На широком планшете минимальный zoom зависит от ширины экрана.
+	var minimum_zoom := _minimum_arena_zoom()
+	var target_zoom: float = maxf(minimum_zoom, clampf(1.30 - (player_mass / 1500.0), 0.50, 1.30))
 	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, min(delta * 2.5, 1.0))
 	time_label.text = "ВРЕМЯ  %02d:%02d" % [int(elapsed_time) / 60, int(elapsed_time) % 60]
 	mass_label.text = "МАССА  %d" % int(float(player.get("mass")))
@@ -154,13 +157,19 @@ func _update_hud_layout() -> void:
 	# HUD controls stay attached to viewport edges instead of using fixed
 	# portrait-only Y coordinates. The playfield and camera remain world-space.
 	time_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	var compact_hud := viewport_size.x < 420.0
+	var hud_width := minf(174.0, viewport_size.x * 0.48)
+	for label in [time_label, mass_label]:
+		label.add_theme_font_size_override("font_size", 13 if compact_hud else 15)
+
+	time_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	time_label.offset_left = 16
 	time_label.offset_top = 16
-	time_label.offset_right = 190
+	time_label.offset_right = 16.0 + hud_width
 	time_label.offset_bottom = 48
 
 	mass_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	mass_label.offset_left = -174
+	mass_label.offset_left = -hud_width
 	mass_label.offset_top = 16
 	mass_label.offset_right = -16
 	mass_label.offset_bottom = 48
@@ -179,6 +188,13 @@ func _update_hud_layout() -> void:
 		map_button.offset_top = -58
 		map_button.offset_right = 134
 		map_button.offset_bottom = -16
+
+func _minimum_arena_zoom() -> float:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return 0.5
+	return maxf(0.5, maxf(viewport_size.x, viewport_size.y) / 2000.0)
+
 
 func _show_game_over(final_mass: int) -> void:
 	if is_instance_valid(game_over_panel):

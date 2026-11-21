@@ -3,7 +3,8 @@ extends Control
 ## The built-in WorldMap drawing remains visible unless the manifest is complete
 ## and its canvas matches the active map layout.
 
-const MANIFEST_PATH := "res://assets/map/map_manifest.json"
+const PORTRAIT_MANIFEST_PATH := "res://assets/map/map_manifest.json"
+const LANDSCAPE_MANIFEST_PATH := "res://assets/map/map_manifest.landscape.json"
 const REQUIRED_LAYER_NAMES := ["map_background", "main_path", "shop_building", "home_building", "party_picnic"]
 
 var _asset_pack_active: bool = false
@@ -45,10 +46,11 @@ func _clear_loaded_layers() -> void:
 	_loaded_layers = 0
 
 func _load_asset_pack() -> void:
-	if not FileAccess.file_exists(MANIFEST_PATH):
+	var manifest_path := LANDSCAPE_MANIFEST_PATH if _layout_is_landscape else PORTRAIT_MANIFEST_PATH
+	if not FileAccess.file_exists(manifest_path):
 		return
 
-	var file := FileAccess.open(MANIFEST_PATH, FileAccess.READ)
+	var file := FileAccess.open(manifest_path, FileAccess.READ)
 	if file == null:
 		push_warning("Map assets: could not open map manifest.")
 		return

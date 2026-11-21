@@ -4,6 +4,7 @@ extends Control
 ## and its canvas matches the active map layout.
 
 const MANIFEST_PATH := "res://assets/map/map_manifest.json"
+const REQUIRED_LAYER_NAMES := ["map_background", "main_path", "shop_building", "home_building", "party_picnic"]
 
 var _asset_pack_active: bool = false
 var _loaded_layers: int = 0
@@ -79,14 +80,18 @@ func _load_asset_pack() -> void:
 
 	var pending_layers: Array[Dictionary] = []
 	var missing_required: Array[String] = []
+	var declared_required_names: Array[String] = []
 
 	for layer_value in layers_value:
 		if typeof(layer_value) != TYPE_DICTIONARY:
 			continue
 
 		var layer: Dictionary = layer_value
+		var layer_name := str(layer.get("name", ""))
 		var texture_path := str(layer.get("texture", ""))
 		var is_required := bool(layer.get("required", true))
+		if is_required and not layer_name.is_empty() and not declared_required_names.has(layer_name):
+			declared_required_names.append(layer_name)
 
 		if texture_path.is_empty() or not ResourceLoader.exists(texture_path):
 			if is_required:
@@ -101,6 +106,10 @@ func _load_asset_pack() -> void:
 
 		pending_layers.append(layer)
 		_loaded_layers += 1
+
+	for required_name in REQUIRED_LAYER_NAMES:
+		if not declared_required_names.has(required_name):
+			missing_required.append("required layer not declared: " + required_name)
 
 	var manifest_complete := bool(manifest.get("complete", false))
 	if not manifest_complete or not missing_required.is_empty() or pending_layers.is_empty():

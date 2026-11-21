@@ -1,15 +1,19 @@
 extends Control
-## Loads the modular pixel-art map from res://assets/map/map_manifest.json.
-## The existing WorldMap drawing remains visible until every required layer is available.
+## Loads a modular pixel-art map from res://assets/map/map_manifest.json.
+## The built-in WorldMap drawing remains visible unless the manifest is complete
+## and its canvas matches the active map layout.
 
 const MANIFEST_PATH := "res://assets/map/map_manifest.json"
 
 var _asset_pack_active: bool = false
 var _loaded_layers: int = 0
+var _layout_is_landscape: bool = false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_layout_is_landscape = _is_landscape_layout()
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
 	_load_asset_pack()
 
 func is_asset_pack_active() -> bool:
@@ -17,6 +21,27 @@ func is_asset_pack_active() -> bool:
 
 func get_loaded_layer_count() -> int:
 	return _loaded_layers
+
+func _is_landscape_layout() -> bool:
+	var viewport_size := get_viewport_rect().size
+	return viewport_size.x > viewport_size.y and viewport_size.x >= 700.0
+
+func _on_viewport_size_changed() -> void:
+	var next_is_landscape := _is_landscape_layout()
+	if next_is_landscape == _layout_is_landscape:
+		return
+
+	_layout_is_landscape = next_is_landscape
+	_clear_loaded_layers()
+	_load_asset_pack()
+
+func _clear_loaded_layers() -> void:
+	for child in get_children():
+		remove_child(child)
+		child.queue_free()
+
+	_asset_pack_active = false
+	_loaded_layers = 0
 
 func _load_asset_pack() -> void:
 	if not FileAccess.file_exists(MANIFEST_PATH):
@@ -35,6 +60,18 @@ func _load_asset_pack() -> void:
 		return
 
 	var manifest: Dictionary = parsed
+	var canvas_value: Variant = manifest.get("canvas", [])
+	if typeof(canvas_value) != TYPE_ARRAY or canvas_value.size() < 2:
+		push_warning("Map assets: manifest must declare its canvas as [width, height].")
+		return
+
+	var expected_canvas := Vector2(1280.0, 800.0) if _layout_is_landscape else Vector2(480.0, 800.0)
+	var manifest_canvas := Vector2(float(canvas_value[0]), float(canvas_value[1]))
+	if manifest_canvas != expected_canvas:
+		# Portrait and landscape maps use different compositions. Never stretch
+		# a 480x800 art pack across the 1280x800 tablet layout (or vice versa).
+		return
+
 	var layers_value: Variant = manifest.get("layers", [])
 	if typeof(layers_value) != TYPE_ARRAY:
 		push_warning("Map assets: manifest 'layers' must be an array.")

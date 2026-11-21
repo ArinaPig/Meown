@@ -53,6 +53,18 @@ These are approximate visual anchors on the 480x800 canvas. Keep each landmark f
 
 The path should guide the eye from the shop to the home and then to the party picnic area. Keep the clickable button rectangles clear of foreground decorations.
 
+## Landscape tablet layout
+
+Use the dedicated **1280x800** composition for a horizontal tablet. The three destinations form a left-to-right route: Shop → Home → Party. Keep the title and subtitle in the top band, landmarks in the middle band, and the interactive buttons below them.
+
+| Location | Landmark centre | Suggested sprite bounds | Button area |
+|---|---:|---:|---:|
+| Shop | (300, 355) | x=210, y=270, w=180, h=170 | x=170, y=510, w=260, h=76 |
+| Home | (640, 355) | x=550, y=270, w=180, h=170 | x=510, y=510, w=260, h=76 |
+| Party picnic | (980, 355) | x=890, y=270, w=180, h=170 | x=850, y=510, w=260, h=76 |
+
+Keep the central route readable and leave the bottom status area (approximately y=730–772) unobstructed. These positions match the current tablet fallback composition and UI controls in `WorldMap.gd`.
+
 ## Manifest format
 
 The loader reads `res://assets/map/map_manifest.json` for portrait and `res://assets/map/map_manifest.landscape.json` for landscape tablets. The checked-in `map_manifest.example.json` and `map_manifest.landscape.example.json` are planning templates, not active manifests. Both deliberately have `complete: false`, so copying either template without finishing the art pack cannot hide the fallback map.

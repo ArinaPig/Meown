@@ -26,7 +26,9 @@ assets/map/
 
 ## Canvas and visual direction
 
-- Design canvas: **480x800**, portrait.
+- Portrait art canvas: **480x800**.
+- Landscape tablet art canvas: **1280x800** when a dedicated wide composition is prepared. The loader activates an art pack only when its declared `canvas` matches the active map layout; portrait artwork is deliberately not stretched across a landscape tablet.
+- Keep separate compositions for portrait phones and landscape tablets. Until the matching complete art pack exists, the built-in map drawing remains active for that layout.
 - Pixel-art filtering: nearest-neighbour; no blur, anti-aliasing or smoothing.
 - Use a consistent pixel scale. Small props should fit a 32x32 grid where practical.
 - Buildings and larger props may use multi-tile sprites.

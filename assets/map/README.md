@@ -80,3 +80,19 @@ Recommended draw order (back to front):
 6. Resident cats and small animated decorations.
 
 The map loader keeps the current fallback map visible unless the manifest is marked complete and every required texture exists. Optional layers can set `required` to `false`; their absence will not prevent the new art pack from activating.
+
+## Pre-activation validation
+
+Before switching the game to a new art pack, run the read-only validator from the project root:
+
+```sh
+godot --headless --path . --script res://tools/validate_map_assets.gd
+```
+
+The validator checks each active portrait/tablet manifest for:
+- the expected canvas size and `complete: true`;
+- all five required layer names, marked as required;
+- unique layer names and valid texture resources;
+- positive layer sizes and bounds contained within the canvas.
+
+Missing optional textures are reported as warnings. If an active manifest is absent, that layout is skipped; this is expected while the artwork is being prepared. A successful validation is a preflight check, not a replacement for opening the game and visually testing both orientations and all three location buttons.

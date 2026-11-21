@@ -14,8 +14,10 @@ This is a small neighbourhood map, not a cafe. Keep the artwork consistent with 
 ```
 assets/map/
   README.md
-  map_manifest.example.json # Safe template; complete=false keeps it inactive
-  map_manifest.json         # Create only when the full art pack is ready
+  map_manifest.example.json           # Portrait template; complete=false keeps it inactive
+  map_manifest.landscape.example.json # Tablet template; complete=false keeps it inactive
+  map_manifest.json                   # Active portrait pack; create only when ready
+  map_manifest.landscape.json         # Active tablet pack; create only when ready
   background/               # Full 480x800 map background
   paths/                    # Winding path and path decorations
   buildings/                # Shop and home sprites; party picnic area
@@ -28,7 +30,7 @@ assets/map/
 
 - Portrait art canvas: **480x800**.
 - Landscape tablet art canvas: **1280x800** when a dedicated wide composition is prepared. The loader activates an art pack only when its declared `canvas` matches the active map layout; portrait artwork is deliberately not stretched across a landscape tablet.
-- Keep separate compositions for portrait phones and landscape tablets. Until the matching complete art pack exists, the built-in map drawing remains active for that layout.
+- Keep separate compositions for portrait phones and landscape tablets. The portrait and tablet templates are separate because the landmarks and route are arranged differently. Until the matching complete art pack exists, the built-in map drawing remains active for that layout.
 - Pixel-art filtering: nearest-neighbour; no blur, anti-aliasing or smoothing.
 - Use a consistent pixel scale. Small props should fit a 32x32 grid where practical.
 - Buildings and larger props may use multi-tile sprites.
@@ -53,9 +55,9 @@ The path should guide the eye from the shop to the home and then to the party pi
 
 ## Manifest format
 
-The loader reads `res://assets/map/map_manifest.json` only. The checked-in `map_manifest.example.json` is a planning template, not an active manifest. It deliberately has `complete: false`, so copying it without finishing the art pack cannot hide the fallback map.
+The loader reads `res://assets/map/map_manifest.json` for portrait and `res://assets/map/map_manifest.landscape.json` for landscape tablets. The checked-in `map_manifest.example.json` and `map_manifest.landscape.example.json` are planning templates, not active manifests. Both deliberately have `complete: false`, so copying either template without finishing the art pack cannot hide the fallback map.
 
-When the art pack is ready, copy the template to `map_manifest.json`, update texture paths and layer bounds, and set `complete` to `true`. The loader expects a JSON object with a `layers` array. Each layer supports `name`, `texture`, `position`, `size`, `z_index`, and `required`.
+When each art pack is ready, copy its matching template to the active filename, update texture paths and layer bounds, and set `complete` to `true`. Both manifests must include the five required layer names: `map_background`, `main_path`, `shop_building`, `home_building`, and `party_picnic`. The loader expects a JSON object with a `canvas` array and a `layers` array. Each layer supports `name`, `texture`, `position`, `size`, `z_index`, and `required`.
 
 Recommended draw order (back to front):
 1. Opaque grass/background.
